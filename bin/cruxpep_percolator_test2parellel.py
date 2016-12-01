@@ -5,6 +5,16 @@ from collections import defaultdict
 import os,sys,random,datetime,warnings,re,glob
 import logging
 import subprocess
+import threading
+
+# control for multi-thread
+tindex = 0
+
+mutex = threading.Lock()
+
+# result (global variables used in multi-thread)
+chrPepHash = {}
+infoArr = []
 
 def main():
 	usage = 'usage: %prog <options> -p junctionPep -c cruxfile -e Alu.unique.bed -j SJdir -t tmpdir -n threadNum'
@@ -14,7 +24,7 @@ def main():
 	parser.add_option('-e', dest='exonfile', help='Ensembl_Alu_25bp_0.5.unique.sorted.bed [Default %default]')
 	parser.add_option('-j', dest='sjfile', help='SJ.out.tab file from STAR [Default %default]')
 	parser.add_option('-t', dest='tmpdir',default='tmp',help='tmp dir [Default %default]')
-	parser.add_option('-n', dest='threadNum',default=1,help='thread num [Default %default]')
+	parser.add_option('-n', dest='threadNum',type='int',default=1,help='thread num [Default %default]')
 	
 	(options, args) = parser.parse_args()
 
@@ -23,7 +33,7 @@ def main():
 	
 	warnings.formatwarning = custom_formatwarning
 	
-	# start
+	## start
 	# 1
 	sample = os.path.basename(options.pepfile)
 	print '======'+sample
@@ -113,8 +123,7 @@ def main():
 	# 6
 	print '# bedtools to find Exon location'
 	exonloc = defaultdict(dict)
-	result = []
-	p = subprocess.Popen('bedtools coverage -a '+options.tmpdir+'/'+'20161129173904-4644.fa'+'.bed -b '+ options.exonfile + ' -s', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	p = subprocess.Popen('bedtools coverage -a '+options.tmpdir+'/'+sample+'.bed -b '+ options.exonfile + ' -s', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 	for line in p.stdout.readlines():
 		ele = line.rstrip().split("\t")
 		if ele[7] == '0': continue
@@ -158,7 +167,7 @@ def main():
 					exonloc[myid]['NA-NA'] = strand+"\t"+loc
 	retval = p.wait()
 
-	# 6
+	# 7
 	print '# build index2 for chr.. seq'
 	tmplen = defaultdict(lambda: defaultdict(lambda: defaultdict(str)))
 	tmpfirst = dict([(k[0], '') for k in pephash.keys()])
@@ -181,14 +190,23 @@ def main():
 				arrStart[f][l] = 0
 				arrSeq2[f] = tmplen[f][l].keys()
 	
+	# 8
 	print '# multiple thread to get junction peptides'
-	(chrPepHash,infoArr) = run(pephash,arrHash,arrStart,arrSeq2,seq,exonloc,exonPosHash)
+	thread_list = []
+	for i in xrange(options.threadNum):
+		sthread = threading.Thread(target = run, args = (str(i),pephash,arrHash,arrStart,arrSeq2,seq,exonloc,exonPosHash))
+		sthread.setDaemon(True)
+		sthread.start()
+		thread_list.append(sthread)
+	for i in xrange(options.threadNum):
+		thread_list[i].join()
+	
 	info = defaultdict(list)
 	for l in infoArr:
 		ele = l.split("\t")
 		info[ele[0]].append(l)
 
-	# 8
+	# 9
 	print '# get peptide under fdr'
 	print '# peptide\tstart\tend\tAlu/HSE_exon\ttag\tid\tseq'
 	novelChrPepHash = {}
@@ -221,7 +239,7 @@ def main():
 		for k in ks:
 			print k + "\t"+chrPepHash[ele[0]] + "\t0"
 	
-
+	## end
 
 
 def aaindex(start,end):
@@ -249,12 +267,19 @@ def localFDR(chrPepHash,FDR=0.05):
 	warnings.warn( "# After FDR %f filter:\t%d" %(FDR,n))
 	return result
 
-def run(pephash,arrHash,arrStart,arrSeq2,seq,exonloc,exonPosHash,tNum=1):
-	infoArr = []
-	chrPepHash = {}
+def run(tNum,pephash,arrHash,arrStart,arrSeq2,seq,exonloc,exonPosHash):
+	global tindex,chrPepHash,infoArr
 	arrPepHash = sorted(pephash.keys())
 	j = 0
-	while j < len(arrPepHash):
+	while 1:
+		if mutex.acquire(1):
+			if tindex == len(arrPepHash):
+				mutex.release()
+				break
+			j = tindex
+			warnings.warn("Thread-%s\t%d" %(tNum,j))
+			tindex += 1
+			mutex.release()
 		pepj = arrPepHash[j]
 		lenj = len(pepj)
 		index = arrHash[lenj] if lenj in arrHash else 0
@@ -262,7 +287,7 @@ def run(pephash,arrHash,arrStart,arrSeq2,seq,exonloc,exonPosHash,tNum=1):
 		iStart = arrStart[firstAA][lenj] if firstAA in arrStart and lenj in arrStart[firstAA] else 0
 		iEnd = len(arrSeq2[firstAA]) - 1
 		arr = arrSeq2[firstAA]
-		warnings.warn("Thread-%d\t%d\t%d\t%s\t%d\t%d\t%s\t%d" %(tNum,j,lenj,firstAA,iStart,iEnd,pepj,lenj))
+		# warnings.warn("Thread-%d\t%d\t%d\t%s\t%d\t%d\t%s\t%d" %(tNum,j,lenj,firstAA,iStart,iEnd,pepj,lenj))
 		for i in arr[iStart:iEnd+1]:
 			index = seq[i].upper().find(pepj.upper())
 			if index != -1:
