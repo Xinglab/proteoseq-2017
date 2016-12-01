@@ -4,8 +4,8 @@ RNA-seq and proteomics integrated pipeline for identification of peptide evidenc
 
 ##Install
 * Pre-requirement<br />
-1.  Environment<br />
-2.  Software<br />
-
-* Install
-
+Environment:  Linux
+Software:     comet, percolaotr(crux)
+.
+.
+.
