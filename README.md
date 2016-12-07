@@ -2,7 +2,7 @@
 ##Proteotranscriptome pipeline
 RNA-seq and proteomics integrated pipeline for identification of peptide evidence of Alu exon or Human specific exons
 <br />
-## test
+## Test (2016-12-08)
 		# copy wine，comet to user's home directory
 		cd ~
 		cp -r /u/home/y/ybwang/wine-1.6.2 ./
