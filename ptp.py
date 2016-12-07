@@ -51,7 +51,7 @@ def main():
 	# 5. percolator (crux percolator)
 	percolatorfile = percolatorCrux(cometoutdir)
 	# 6. post-filter(extract peptide mapped Alu/HSE exons, and FDR filter)
-	postPercolatorFilter(fastaname,percolatorfile,options.exonfille,options.sjfile)
+	postPercolatorFilter(OUTDIR+'/'+fastaname,percolatorfile,options.exonfile,options.sjfile)
 
 def test(outdir,outfile):
 	global OUTDIR
@@ -60,7 +60,7 @@ def test(outdir,outfile):
 	sjfile = 'data/SJ_out/LCLs/GM18486.rna.SJ'
 	customdb = outdir+'/merge_'+outfile+'.fa'
 	cometoutdir = 'comet_'+outfile
-	#percolatorCrux(cometoutdir)
+	percolatorCrux(cometoutdir)
 	percolatorfile = outdir + '/cruxoutput_' + outfile + '/percolator.target.peptides.txt'
 	exonfile = 'data/Ensembl_Alu_25bp_0.5.unique.sorted.bed'
 	postPercolatorFilter(fastaname,percolatorfile,exonfile,sjfile)
@@ -95,7 +95,7 @@ def databaseSearch(rawdir, database):
 	rawfiles = [x for x in allfiles if re.search('\.raw|\.mzXML',x) is not None]
 	if not os.path.exists(COMETDIR):
 		os.makedirs(COMETDIR)
-	for i in rawfiles[0:1]:
+	for i in rawfiles[0:]:
 		inf = RAWDIR + '/' + i
 		outf = COMETDIR + '/' + re.sub(re.compile("\..*$"),"",i)
 		cmd = "WINEDEBUG=fixme-all,err-all " + WINE +" "+ COMET +" -P"+ PARA+" -D"+database+" -N"+outf+" "+inf
@@ -113,8 +113,8 @@ def percolatorCrux(cometdir):
                 os.makedirs(cruxoutdir)
 	os.system(BINDIR+'/modifyScanNr2CruxPerc.py'+' '+OUTDIR+'/'+cometdir +' '+cruxPrecTmp)
 	os.system(BINDIR+'/crux percolator --train-fdr 0.05 --test-fdr 0.05 --overwrite T --output-dir ' + cruxoutdir + ' ' + cruxPrecTmp + '/' + cometdir + '.2cruxprec')
+	return cruxoutdir + '/percolator.target.peptides.txt'
 	
-	pass
 
 def postPercolatorFilter(fastaname,percolatorfile,exonfille,sjfile, threadNum=1):
 	tmpdir = OUTDIR+'/tmp'
@@ -125,5 +125,5 @@ def custom_formatwarning(msg, *a):
 	return str(msg) + '\n'
 
 if __name__ == '__main__':
-	#main()
-	test(sys.argv[1],sys.argv[2])
+	main()
+	#test(sys.argv[1],sys.argv[2])

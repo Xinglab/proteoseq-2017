@@ -101,7 +101,7 @@ def main():
 				exonPosHash[s3][s4].append(strline)
 			else:
 				exonPosHash[s3][s4] = [strline]
-	
+
 	# 5
 	print "# read junction pep and write to bed"
 	seq = {}
@@ -189,7 +189,7 @@ def main():
 			else:
 				arrStart[f][l] = 0
 				arrSeq2[f] = tmplen[f][l].keys()
-	
+
 	# 8
 	print '# multiple thread to get junction peptides'
 	thread_list = []
@@ -277,7 +277,7 @@ def run(tNum,pephash,arrHash,arrStart,arrSeq2,seq,exonloc,exonPosHash):
 				mutex.release()
 				break
 			j = tindex
-			warnings.warn("Thread-%s\t%d" %(tNum,j))
+			#warnings.warn("Thread-%s\t%d" %(tNum,j))
 			tindex += 1
 			mutex.release()
 		pepj = arrPepHash[j]
@@ -287,7 +287,7 @@ def run(tNum,pephash,arrHash,arrStart,arrSeq2,seq,exonloc,exonPosHash):
 		iStart = arrStart[firstAA][lenj] if firstAA in arrStart and lenj in arrStart[firstAA] else 0
 		iEnd = len(arrSeq2[firstAA]) - 1
 		arr = arrSeq2[firstAA]
-		# warnings.warn("Thread-%d\t%d\t%d\t%s\t%d\t%d\t%s\t%d" %(tNum,j,lenj,firstAA,iStart,iEnd,pepj,lenj))
+		#warnings.warn("Thread-%s\t%d\t%d\t%s\t%d\t%d\t%s\t%d" %(tNum,j,lenj,firstAA,iStart,iEnd,pepj,lenj))
 		for i in arr[iStart:iEnd+1]:
 			index = seq[i].upper().find(pepj.upper())
 			if index != -1:
