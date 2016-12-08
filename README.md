@@ -22,7 +22,7 @@ RNA-seq and proteomics integrated pipeline for identification of peptide evidenc
 		# if the command could run normally
 		# and if crux tool installed successed，then run pipeline to test
 		ln -s /u/home/y/ybwang/nobackup-yxing-PROJECT/ProteoTranscriptomePipeline/ ybwangdir
-		./ptp.py -b ybwangdir/data/RNA/GM18486.rna/Aligned.out.sorted.bam -j ybwangdir/data/SJ_out/LCLs/GM18486.rna.SJ -p /u/home/y/ybwang/nobackup-yxing/data/Yoav_Gilad_proteom/GM18486 -e ybwangdir/data/Ensembl_Alu_25bp_0.5.unique.sorted.bed -o output
+		python ./ptp.py -b ybwangdir/data/RNA/GM18486.rna/Aligned.out.sorted.bam -j ybwangdir/data/SJ_out/LCLs/GM18486.rna.SJ -p /u/home/y/ybwang/nobackup-yxing/data/Yoav_Gilad_proteom/GM18486 -e ybwangdir/data/Ensembl_Alu_25bp_0.5.unique.sorted.bed -o output
 
 ##Dependencies
 
