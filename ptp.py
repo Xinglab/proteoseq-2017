@@ -5,12 +5,23 @@ from collections import defaultdict
 import os,sys,random,datetime,warnings,re
 import logging
 import subprocess
+import ConfigParser
 
-BINDIR = '/u/home/y/ybwang/nobackup-yxing-PROJECT/ProteoTranscriptomePipeline/bin'
-OUTDIR = 'outdir'
+OUTDIR,BINDIR,CHROME,WINE,COMETEXE,COMETPAR,CRUX = 'outdir','','','','','',''
 
 def main():
-	global OUTDIR
+	global OUTDIR,BINDIR,CHROME,WINE,COMETEXE,COMETPAR,CRUX
+	## read global parameters
+	config = ConfigParser.ConfigParser()
+	config.readfp(open('config.ini',"rb"))
+
+	BINDIR = config.get('global','BINDIR')
+	CHROME = config.get('global','CHROME')
+	WINE = config.get('global','WINE')
+	COMETPAR = config.get('global','COMETPAR')
+	COMETEXE = config.get('global','COMETEXE')
+	CRUX = config.get('global','CRUX')
+	## read pipeline parameters
 	usage = 'usage: %prog <options> -b Aligned.out.sorted.bam -j SJ.tab.out -p proteomicsdir -e HSExonfile -o outdir --l 66 --g genome_file --min-junc-reads 2 --trim-RK False'
 	parser = OptionParser(usage)
 	# necessary parameters
@@ -21,7 +32,7 @@ def main():
 	parser.add_option('-o', dest='outdir',default=OUTDIR, help='Output dir filename [Default %default]')	
 	# parameters for translation
         parser.add_option('--l', dest='flank', type='int', default=66, help='Extend flanking junction ends by this number of bp [Default %default]')
-        parser.add_option('--g', dest='genome_file', default='/u/home/f/frankwoe/nobackup/hg19/hg19_by_chrom/', help='genomic fasta directory (by chromosomes) [Default %default]')
+        parser.add_option('--g', dest='genome_file', default=CHROME, help='genomic fasta directory (by chromosomes) [Default %default]')
         parser.add_option('--min-junc-reads', dest='min_junc_reads', default=2, type='int', help='Minimum number of reads required spanning the junction [Default %default]')
 	(options, args) = parser.parse_args()
 	# check parameters
@@ -80,30 +91,27 @@ def translate(bamfile,sjfile,exonfiles,flank,genome_file,min_junc_reads,outfile)
 	return os.path.basename(outfile)
 
 def mergePeps2Database(fastafile):
-	os.system("cat /u/home/y/ybwang/nobackup-yxing-PROJECT/ProteoTranscriptomePipeline/data/UP000005640_9606_additional_cdhit1.fasta " + OUTDIR+"/"+fastafile + ">" + OUTDIR + "/merge_" + fastafile)
+	os.system("cat data/UP000005640_9606_additional_cdhit1.fasta " + OUTDIR+"/"+fastafile + ">" + OUTDIR + "/merge_" + fastafile)
 	return os.path.basename(OUTDIR + "/merge_" + fastafile)
 
 def databaseSearch(rawdir, database):
-	WINE = "/u/home/y/ybwang/comet/wine"
-	COMET = BINDIR + '/'+"comet.2015025.win64.exe"
-	PARA = BINDIR + "/"+ "comet.params.high-low"
-	COMETDIR = OUTDIR + "/comet_" + re.sub(re.compile("merge_|\.fa$"),"",os.path.basename(database))
+	COMETOUTDIR = OUTDIR + "/comet_" + re.sub(re.compile("merge_|\.fa$"),"",os.path.basename(database))
 	RAWDIR = re.sub(re.compile("/$"),"",rawdir)
 	mylogger = logging.getLogger("comet")
 
 	allfiles = os.listdir(RAWDIR)
 	rawfiles = [x for x in allfiles if re.search('\.raw|\.mzXML',x) is not None]
-	if not os.path.exists(COMETDIR):
-		os.makedirs(COMETDIR)
-	for i in rawfiles[0:]:
+	if not os.path.exists(COMETOUTDIR):
+		os.makedirs(COMETOUTDIR)
+	for i in rawfiles[0:1]:
 		inf = RAWDIR + '/' + i
-		outf = COMETDIR + '/' + re.sub(re.compile("\..*$"),"",i)
-		cmd = "WINEDEBUG=fixme-all,err-all " + WINE +" "+ COMET +" -P"+ PARA+" -D"+database+" -N"+outf+" "+inf
+		outf = COMETOUTDIR + '/' + re.sub(re.compile("\..*$"),"",i)
+		cmd = "WINEDEBUG=fixme-all,err-all " + WINE +" "+ COMETEXE +" -P"+ COMETPAR+" -D"+database+" -N"+outf+" "+inf
 		p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 		for line in p.stdout.readlines():
 			mylogger.info(line.rstrip())
 		retval = p.wait()
-	return os.path.basename(COMETDIR)
+	return os.path.basename(COMETOUTDIR)
 
 def percolatorCrux(cometdir):
 	cometfiles = os.listdir(OUTDIR+'/'+cometdir)
@@ -112,7 +120,7 @@ def percolatorCrux(cometdir):
 	if not os.path.exists(cruxoutdir):
                 os.makedirs(cruxoutdir)
 	os.system(BINDIR+'/modifyScanNr2CruxPerc.py'+' '+OUTDIR+'/'+cometdir +' '+cruxPrecTmp)
-	os.system(BINDIR+'/crux percolator --train-fdr 0.05 --test-fdr 0.05 --overwrite T --output-dir ' + cruxoutdir + ' ' + cruxPrecTmp + '/' + cometdir + '.2cruxprec')
+	os.system(CRUX +' percolator --train-fdr 0.05 --test-fdr 0.05 --overwrite T --output-dir ' + cruxoutdir + ' ' + cruxPrecTmp + '/' + cometdir + '.2cruxprec')
 	return cruxoutdir + '/percolator.target.peptides.txt'
 	
 
