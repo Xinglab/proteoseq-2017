@@ -7,22 +7,23 @@ import logging
 import subprocess
 import ConfigParser
 
-OUTDIR,BINDIR,CHROME,WINE,COMETEXE,COMETPAR,CRUX = 'outdir','','','','','',''
+OUTDIR,BINDIR,CHROMS,WINE,COMETEXE,COMETPAR,CRUX,BEDTOOLDIR = 'outdir','','','','','','',''
 
 def main():
-	global OUTDIR,BINDIR,CHROME,WINE,COMETEXE,COMETPAR,CRUX
+	global OUTDIR,BINDIR,CHROMS,WINE,COMETEXE,COMETPAR,CRUX,BEDTOOLDIR
 	## read global parameters
 	config = ConfigParser.ConfigParser()
 	config.readfp(open('config.ini',"rb"))
-
 	BINDIR = config.get('global','BINDIR')
-	CHROME = config.get('global','CHROME')
+	CHROMS = config.get('global','CHROMS')
 	WINE = config.get('global','WINE')
 	COMETPAR = config.get('global','COMETPAR')
 	COMETEXE = config.get('global','COMETEXE')
 	CRUX = config.get('global','CRUX')
+	BEDTOOLDIR = config.get('global','BEDTOOLDIR')
+
 	## read pipeline parameters
-	usage = 'usage: %prog <options> -b Aligned.out.sorted.bam -j SJ.tab.out -p proteomicsdir -e HSExonfile -o outdir --l 66 --g genome_file --min-junc-reads 2 --trim-RK False'
+	usage = 'usage: %prog -b Aligned.out.sorted.bam -j SJ.tab.out -p proteomicsdir -e HSExonfile -o outdir --l 66 --g genome_file --min-junc-reads 2 --trim-RK False'
 	parser = OptionParser(usage)
 	# necessary parameters
 	parser.add_option('-b','--bamfile', dest='bamfile', help='bam file from STAR [Default %default]')
@@ -32,7 +33,7 @@ def main():
 	parser.add_option('-o', dest='outdir',default=OUTDIR, help='Output dir filename [Default %default]')	
 	# parameters for translation
         parser.add_option('--l', dest='flank', type='int', default=66, help='Extend flanking junction ends by this number of bp [Default %default]')
-        parser.add_option('--g', dest='genome_file', default=CHROME, help='genomic fasta directory (by chromosomes) [Default %default]')
+        parser.add_option('--g', dest='genome_file', default=CHROMS, help='genomic fasta directory (by chromosomes) [Default %default]')
         parser.add_option('--min-junc-reads', dest='min_junc_reads', default=2, type='int', help='Minimum number of reads required spanning the junction [Default %default]')
 	(options, args) = parser.parse_args()
 	# check parameters
@@ -41,7 +42,7 @@ def main():
 	if options.outdir is not None:
 		OUTDIR = re.sub(re.compile("/$"),"",options.outdir)
 
-	# mkdir 'tmp' if not exists
+	# mkdir 'outdir' if not exists
 	if not os.path.exists(OUTDIR):
 		os.makedirs(OUTDIR)
 	warnings.formatwarning = custom_formatwarning
@@ -65,8 +66,19 @@ def main():
 	postPercolatorFilter(OUTDIR+'/'+fastaname,percolatorfile,options.exonfile,options.sjfile)
 
 def test(outdir,outfile):
-	global OUTDIR
+	global OUTDIR,BINDIR,CHROMS,WINE,COMETEXE,COMETPAR,CRUX,BEDTOOLDIR
+	## read global parameters
+	config = ConfigParser.ConfigParser()
+	config.readfp(open('config.ini',"rb"))
+	BINDIR = config.get('global','BINDIR')
+	CHROMS = config.get('global','CHROMS')
+	WINE = config.get('global','WINE')
+	COMETPAR = config.get('global','COMETPAR')
+	COMETEXE = config.get('global','COMETEXE')
+	CRUX = config.get('global','CRUX')
+	BEDTOOLDIR = config.get('global','BEDTOOLDIR')
 	OUTDIR = outdir
+
 	fastaname = outdir+'/'+outfile+'.fa'
 	sjfile = 'data/SJ_out/LCLs/GM18486.rna.SJ'
 	customdb = outdir+'/merge_'+outfile+'.fa'
@@ -95,15 +107,16 @@ def mergePeps2Database(fastafile):
 	return os.path.basename(OUTDIR + "/merge_" + fastafile)
 
 def databaseSearch(rawdir, database):
+	warnings.warn('## database search start')
 	COMETOUTDIR = OUTDIR + "/comet_" + re.sub(re.compile("merge_|\.fa$"),"",os.path.basename(database))
 	RAWDIR = re.sub(re.compile("/$"),"",rawdir)
 	mylogger = logging.getLogger("comet")
 
 	allfiles = os.listdir(RAWDIR)
 	rawfiles = [x for x in allfiles if re.search('\.raw|\.mzXML',x) is not None]
-	if not os.path.exists(COMETOUTDIR):
-		os.makedirs(COMETOUTDIR)
-	for i in rawfiles[0:1]:
+	if not os.path.exists(COMETOUTDIR): os.makedirs(COMETOUTDIR)
+	for i in rawfiles[0:]:
+		warnings.warn("\t# raw file:\t%s" % i)
 		inf = RAWDIR + '/' + i
 		outf = COMETOUTDIR + '/' + re.sub(re.compile("\..*$"),"",i)
 		cmd = "WINEDEBUG=fixme-all,err-all " + WINE +" "+ COMETEXE +" -P"+ COMETPAR+" -D"+database+" -N"+outf+" "+inf
@@ -126,7 +139,7 @@ def percolatorCrux(cometdir):
 
 def postPercolatorFilter(fastaname,percolatorfile,exonfille,sjfile, threadNum=1):
 	tmpdir = OUTDIR+'/tmp'
-	os.system(BINDIR+'/cruxpep_percolator_test2parellel.py -p %s -c %s -e %s -j %s -t %s -n %d' % (fastaname,percolatorfile,exonfille,sjfile,tmpdir,threadNum))
+	os.system(BINDIR+'/cruxpep_percolator_test2parellel.py -p %s -c %s -e %s -j %s -t %s -n %d -d %s' % (fastaname,percolatorfile,exonfille,sjfile,tmpdir,threadNum,BEDTOOLDIR))
 
 def custom_formatwarning(msg, *a):
 	# ignore everything except the message

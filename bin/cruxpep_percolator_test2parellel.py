@@ -2,7 +2,7 @@
 
 from optparse import OptionParser
 from collections import defaultdict
-import os,sys,random,datetime,warnings,re,glob
+import os,sys,warnings,re,glob
 import logging
 import subprocess
 import threading
@@ -17,7 +17,7 @@ chrPepHash = {}
 infoArr = []
 
 def main():
-	usage = 'usage: %prog <options> -p junctionPep -c cruxfile -e Alu.unique.bed -j SJdir -t tmpdir -n threadNum'
+	usage = 'usage: %prog <options> -p junctionPep -c cruxfile -e Alu.unique.bed -j SJdir -t tmpdir -n threadNum -d bedtooldir'
 	parser = OptionParser(usage)
 	parser.add_option('-p', dest='pepfile', help='junction pep file [Default %default]')
 	parser.add_option('-c', dest='cruxfile', help='percolator.target.peptides.txt from crux [Default %default]')
@@ -25,10 +25,11 @@ def main():
 	parser.add_option('-j', dest='sjfile', help='SJ.out.tab file from STAR [Default %default]')
 	parser.add_option('-t', dest='tmpdir',default='tmp',help='tmp dir [Default %default]')
 	parser.add_option('-n', dest='threadNum',type='int',default=1,help='thread num [Default %default]')
+	parser.add_option('-d', dest='bedtooldir',help='bedtool bin directory path')
 	
 	(options, args) = parser.parse_args()
 
-	if options.sjfile is None or options.pepfile is None or options.cruxfile is None or options.exonfile is None:
+	if options.sjfile is None or options.pepfile is None or options.cruxfile is None or options.exonfile is None or options.bedtooldir is None:
 		sys.exit("[ERROR] "+parser.get_usage())
 	
 	warnings.formatwarning = custom_formatwarning
@@ -123,7 +124,7 @@ def main():
 	# 6
 	print '# bedtools to find Exon location'
 	exonloc = defaultdict(dict)
-	p = subprocess.Popen('bedtools coverage -a '+options.tmpdir+'/'+sample+'.bed -b '+ options.exonfile + ' -s', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	p = subprocess.Popen(options.bedtooldir + 'bedtools coverage -a '+options.tmpdir+'/'+sample+'.bed -b '+ options.exonfile + ' -s', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 	for line in p.stdout.readlines():
 		ele = line.rstrip().split("\t")
 		if ele[7] == '0': continue
