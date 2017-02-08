@@ -7,10 +7,10 @@ import logging
 import subprocess
 import ConfigParser
 
-OUTDIR,BINDIR,CHROMS,WINE,COMETEXE,COMETPAR,CRUX,BEDTOOLDIR = 'outdir','','','','','','',''
+OUTDIR,BINDIR,CHROMS,WINE,COMETEXE,COMETPAR,CRUX,BEDTOOLDIR,PERCOLATOR = 'outdir','','','','','','','',''
 
 def main():
-	global OUTDIR,BINDIR,CHROMS,WINE,COMETEXE,COMETPAR,CRUX,BEDTOOLDIR
+	global OUTDIR,BINDIR,CHROMS,WINE,COMETEXE,COMETPAR,CRUX,BEDTOOLDIR,PERCOLATOR
 	## read global parameters
 	config = ConfigParser.ConfigParser()
 	config.readfp(open('config.ini',"rb"))
@@ -21,6 +21,7 @@ def main():
 	COMETEXE = config.get('global','COMETEXE')
 	CRUX = config.get('global','CRUX')
 	BEDTOOLDIR = config.get('global','BEDTOOLDIR')
+	PERCOLATOR = config.get('global','PERCOLATOR')
 
 	## read pipeline parameters
 	usage = 'usage: %prog -b Aligned.out.sorted.bam -j SJ.tab.out -p proteomicsdir -e HSExonfile -o outdir --l 66 --g genome_file --min-junc-reads 2 --trim-RK False'
@@ -137,7 +138,28 @@ def percolatorCrux(cometdir):
 	os.system(BINDIR+'/modifyScanNr2CruxPerc.py'+' '+OUTDIR+'/'+cometdir +' '+cruxPrecTmp)
 	os.system(CRUX +' percolator --train-fdr 0.05 --test-fdr 0.05 --overwrite T --output-dir ' + cruxoutdir + ' ' + cruxPrecTmp + '/' + cometdir + '.2cruxprec')
 	return cruxoutdir + '/percolator.target.peptides.txt'
-	
+
+def percolator(cometdir):
+	cometfiles = os.listdir(OUTDIR+'/'+cometdir)
+	PercolatorOutDir = OUTDIR+'/'+cometdir.replace('comet','Percolator')
+	if not os.path.exists(PercolatorOutDir):
+		os.makedirs(PercolatorOutDir)
+	os.system('cat ' + OUTDIR+'/'+cometdir + '*.pin > ' + PercolatorOutDir + '/PercolatorTmp.pin')
+	data = []
+	n = 0
+	with open(PercolatorOutDir+'/PercolatorTmp.pin', 'r') as f:
+		for line in f:
+			line = line.rstrip('\r\n')
+			if n == 0:
+				data.append(line)
+				n += 1
+			if line.find('id') != 0:
+				data.append(line)
+	with open(PercolatorOutDir+'/PercolatorTmp.pin', 'w') as f:
+		for d in data:
+			fout.write(d+'\n')
+	os.system(PERCOLATOR + ' ' + PercolatorOutDir+'/PercolatorTmp.pin -t 0.05 -F 0.05 -m ' + PercolatorOutDir + '/percolator.target.psm.txt -r '+ PercolatorOutDir +'/percolator.target.peptides.txt')
+	return PercolatorOutDir + '/percolator.target.peptides.txt'
 
 def postPercolatorFilter(fastaname,percolatorfile,exonfille,sjfile, threadNum=1):
 	tmpdir = OUTDIR+'/tmp'
