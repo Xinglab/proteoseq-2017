@@ -51,11 +51,11 @@ def main():
 	## start
 	# 1. parse SJ.tab.out file
 	warnings.warn("## starting parse junction files")
-	filename = parseSJ(options.sjfile)
-	warnings.warn('## output file name: %s' % filename.replace('.SJ',''))
+	sjfilename = parseSJ(options.sjfile)
+	warnings.warn('## output file name: %s' % sjfilename.replace('.SJ',''))
 	# 2. translate junctions to peptide
 	warnings.warn("## starting translating into junction peptides")
-	fastaname = translate(options.bamfile,OUTDIR+"/"+filename,options.exonfile,options.flank,options.genome_file,options.min_junc_reads,OUTDIR+"/"+filename.replace('SJ','fa'))
+	fastaname = translate(options.bamfile,OUTDIR+"/"+sjfilename,options.exonfile,options.flank,options.genome_file,options.min_junc_reads,OUTDIR+"/"+sjfilename.replace('SJ','fa'))
 	# 3. merge peptides to uniprot database
 	customdb = mergePeps2Database(fastaname)
 	# 4. database search using comet
@@ -63,7 +63,7 @@ def main():
 	# 5. percolator (crux percolator)
 	percolatorfile = percolatorCrux(cometoutdir)
 	# 6. post-filter(extract peptide mapped Alu/HSE exons, and FDR filter)
-	postPercolatorFilter(OUTDIR+'/'+fastaname,percolatorfile,options.exonfile,options.sjfile)
+	postPercolatorFilter(OUTDIR+'/'+fastaname,percolatorfile,options.exonfile,OUTDIR+"/"+sjfilename)
 
 def test(outdir,outfile):
 	global OUTDIR,BINDIR,CHROMS,WINE,COMETEXE,COMETPAR,CRUX,BEDTOOLDIR
@@ -80,7 +80,8 @@ def test(outdir,outfile):
 	OUTDIR = outdir
 
 	fastaname = outdir+'/'+outfile+'.fa'
-	sjfile = 'data/SJ_out/LCLs/GM18486.rna.SJ'
+	#sjfile = 'data/SJ_out/LCLs/GM18486.rna.SJ'
+	sjfile = outdir+'/'+outfile+'.SJ'
 	customdb = outdir+'/merge_'+outfile+'.fa'
 	cometoutdir = 'comet_'+outfile
 	percolatorCrux(cometoutdir)
@@ -120,6 +121,7 @@ def databaseSearch(rawdir, database):
 		inf = RAWDIR + '/' + i
 		outf = COMETOUTDIR + '/' + re.sub(re.compile("\..*$"),"",i)
 		cmd = "WINEDEBUG=fixme-all,err-all " + WINE +" "+ COMETEXE +" -P"+ COMETPAR+" -D"+database+" -N"+outf+" "+inf
+		warnings.warn("\t"+cmd)
 		p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 		for line in p.stdout.readlines():
 			mylogger.info(line.rstrip())
