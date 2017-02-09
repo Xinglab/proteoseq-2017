@@ -20,14 +20,15 @@ def main():
 
 	## star install
 	# 1. copy wine directory to home directory
+	warnings.warn('[INSTALL] copy wine dir to home directory')
 	HOMEDIR = re.sub(r'\/$','',options.homedir)
 	INSTALLDIR = re.sub(r'\/$','',options.install)
-	#os.system('tar -zxvf wine_dir.tgz -C ' + HOMEDIR)
+	os.system('tar -zxvf wine_dir.tgz -C ' + HOMEDIR)
 	homedir1 = HOMEDIR.replace('/','\\')
 	cmd1 = 'sed -i s\'/homedirXXXXXA/' + homedir1 +'/g\' ' + HOMEDIR + '/.wine/*.reg'
 	cmd2 = 'sed -i s\'/homedirXXXXXB/' + options.homedir +'/g\' ' + HOMEDIR + '/.wine/*.reg'
-	#os.system(cmd1)
-	#os.system(cmd2)
+	os.system(cmd1)
+	os.system(cmd2)
 	
 	# 2. copy files to install directory
 	if not os.path.exists(INSTALLDIR):
