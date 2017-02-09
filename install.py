@@ -50,7 +50,7 @@ def main():
 		fout.write('COMETEXE = ' + INSTALLDIR + '/bin/comet/comet.2015025.win64.exe\n')
 		fout.write('COMETPAR = ' + INSTALLDIR + '/bin/comet/comet.params.high-low\n')
 		fout.write('CRUX = ' + 	INSTALLDIR + '/bin/crux\n')
-		fout.write('BEDTOOLDIR = ' + INSTALLDIR + '/bin/bedtools/\n')
+		fout.write('BEDTOOLDIR = ' + INSTALLDIR + '/bin/bedtools2/\n')
 		fout.write('PERCOLATOR = ' + INSTALLDIR + '/bin/percolator-2.08/bin/percolator')
 
 def custom_formatwarning(msg, *a):
