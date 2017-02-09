@@ -174,5 +174,5 @@ def custom_formatwarning(msg, *a):
 	return str(msg) + '\n'
 
 if __name__ == '__main__':
-	#main()
-	test(sys.argv[1],sys.argv[2])
+	main()
+	#test(sys.argv[1],sys.argv[2])
