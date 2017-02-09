@@ -20,7 +20,9 @@ ybwang@hust.edu.cn
 		# run the pipeline to test
 		Usage: ptp.py -b Aligned.out.sorted.bam -j SJ.tab.out -p proteomicsdir -e HSExonfile -o outdir
 		Example:
-		python ptp.py -b GM18486.rna/Aligned.out.sorted.bam -j GM18486.rna/GM18486.rna.SJ -p Yoav_Gilad_proteom/GM18486/ -e data/Ensembl_Alu_25bp_0.5.unique.sorted.bed
+		ln -s /u/home/f/frankwoe/nobackup/AST/Yoav_Gilad_YRI/RNA/star_output/GM18486.rna/ RNA
+		ln -s /u/home/y/ybwang/nobackup-yxing/data/Yoav_Gilad_proteom/GM18486/ PRO		
+		python ptp.py -b RNA/Aligned.out.sorted.bam -j RNA/SJ.out.tab -p PRO/ -e data/Ensembl_Alu_25bp_0.5.unique.sorted.bed
 
 ## Test (2016-12-08)
 		# copy wine，comet to user's home directory
