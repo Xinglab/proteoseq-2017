@@ -2,6 +2,22 @@
 ##Proteotranscriptome pipeline
 RNA-seq and proteomics integrated pipeline for identification of peptide evidence of Alu exon or Human specific exons
 <br />
+
+
+## Test (2017-02-08)
+		# download the install files
+		git clone https://github.com/Xinglab/proteoseq.git
+
+		# install by running the 'install file'
+		./install --homedir /u/home/y/ybwang --install directorToInstall
+		Example:
+		./install --homedir /u/home/y/ybwang --install ~/scratch/ptp
+
+		# run the pipeline to test
+		Usage: ptp.py -b Aligned.out.sorted.bam -j SJ.tab.out -p proteomicsdir -e HSExonfile -o outdir
+		Example:
+		python ./ptp.py -b GM18486.rna/Aligned.out.sorted.bam -j GM18486.rna/GM18486.rna.SJ -p Yoav_Gilad_proteom/GM18486/ -e data/Ensembl_Alu_25bp_0.5.unique.sorted.bed
+
 ## Test (2016-12-08)
 		# copy wine，comet to user's home directory
 		cd ~
