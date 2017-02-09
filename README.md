@@ -9,9 +9,9 @@ RNA-seq and proteomics integrated pipeline for identification of peptide evidenc
 		git clone https://github.com/Xinglab/proteoseq.git
 
 		# install by running the 'install file'
-		./install --homedir /u/home/y/ybwang --install directorToInstall
+		./install.py --homedir /u/home/y/ybwang --install directorToInstall
 		Example:
-		./install --homedir /u/home/y/ybwang --install ~/scratch/ptp
+		./install.py --homedir /u/home/y/ybwang --install ~/scratch/ptp
 
 		# run the pipeline to test
 		Usage: ptp.py -b Aligned.out.sorted.bam -j SJ.tab.out -p proteomicsdir -e HSExonfile -o outdir
