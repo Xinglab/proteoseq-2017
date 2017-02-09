@@ -20,7 +20,7 @@ def main():
 
 	## star install
 	# 1. copy wine directory to home directory
-	warnings.warn('[INSTALL] copy wine dir to home directory')
+	warnings.warn('[INSTALL] copy wine dir to home directory: ' + options.homedir)
 	HOMEDIR = re.sub(r'\/$','',options.homedir)
 	INSTALLDIR = re.sub(r'\/$','',options.install)
 	os.system('tar -zxvf wine_dir.tgz -C ' + HOMEDIR)
@@ -33,7 +33,7 @@ def main():
 	# 2. copy files to install directory
 	if not os.path.exists(INSTALLDIR):
 		os.makedirs(INSTALLDIR)
-	warnings.warn('[INSTALL] copy files to install dir')
+	warnings.warn('[INSTALL] copy files to install dir: ' + options.install)
 	os.system('cp -rf proteoseq/* ' + INSTALLDIR)
 	
 	# 3. ln wine
