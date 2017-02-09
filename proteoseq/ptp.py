@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /u/home/y/ybwang/python
 
 from optparse import OptionParser
 from collections import defaultdict
@@ -137,7 +137,7 @@ def percolatorCrux(cometdir):
 	cruxoutdir = OUTDIR+'/'+cometdir.replace('comet','cruxoutput')
 	if not os.path.exists(cruxoutdir):
                 os.makedirs(cruxoutdir)
-	os.system(BINDIR+'/modifyScanNr2CruxPerc.py'+' '+OUTDIR+'/'+cometdir +' '+cruxPrecTmp)
+	os.system('python ' + BINDIR+'/modifyScanNr2CruxPerc.py'+' '+OUTDIR+'/'+cometdir +' '+cruxPrecTmp)
 	os.system(CRUX +' percolator --train-fdr 0.05 --test-fdr 0.05 --overwrite T --output-dir ' + cruxoutdir + ' ' + cruxPrecTmp + '/' + cometdir + '.2cruxprec')
 	return cruxoutdir + '/percolator.target.peptides.txt'
 
@@ -167,7 +167,7 @@ def percolator(cometdir):
 def postPercolatorFilter(fastaname,percolatorfile,exonfille,sjfile, threadNum=1):
 	tmpdir = OUTDIR+'/tmp'
 	#os.system(BINDIR+'/cruxpep_percolator_test2parellel.py -p %s -c %s -e %s -j %s -t %s -n %d -d %s' % (fastaname,percolatorfile,exonfille,sjfile,tmpdir,threadNum,BEDTOOLDIR))
-	os.system(BINDIR+'/percolator_test2parellel.py -p %s -c %s -e %s -j %s -t %s -n %d -d %s' % (fastaname,percolatorfile,exonfille,sjfile,tmpdir,threadNum,BEDTOOLDIR))
+	os.system('python ' + BINDIR+'/percolator_test2parellel.py -p %s -c %s -e %s -j %s -t %s -n %d -d %s' % (fastaname,percolatorfile,exonfille,sjfile,tmpdir,threadNum,BEDTOOLDIR))
 
 def custom_formatwarning(msg, *a):
 	# ignore everything except the message
