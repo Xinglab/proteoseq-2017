@@ -1,4 +1,4 @@
-#! /u/home/y/ybwang/python
+#!/usr/bin/python
 
 from optparse import OptionParser
 from collections import defaultdict

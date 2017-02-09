@@ -1,4 +1,4 @@
-#! /u/home/y/ybwang/python
+#!/usr/bin/python
 
 import glob,sys,re
 import os.path
