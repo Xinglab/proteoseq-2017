@@ -61,8 +61,8 @@ def main():
 	customdb = mergePeps2Database(fastaname)
 	# 4. database search using comet
 	cometoutdir = databaseSearch(options.rawdir, OUTDIR+"/"+customdb)
-	# 5. percolator (crux percolator)
-	percolatorfile = percolatorCrux(cometoutdir)
+	# 5. percolator (or crux percolator)
+	percolatorfile = percolator(cometoutdir)
 	# 6. post-filter(extract peptide mapped Alu/HSE exons, and FDR filter)
 	postPercolatorFilter(OUTDIR+'/'+fastaname,percolatorfile,options.exonfile,OUTDIR+"/"+sjfilename)
 
