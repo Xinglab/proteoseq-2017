@@ -67,7 +67,7 @@ def main():
 	postPercolatorFilter(OUTDIR+'/'+fastaname,percolatorfile,options.exonfile,OUTDIR+"/"+sjfilename)
 
 def test(outdir,outfile):
-	global OUTDIR,BINDIR,CHROMS,WINE,COMETEXE,COMETPAR,CRUX,BEDTOOLDIR
+	global OUTDIR,BINDIR,CHROMS,WINE,COMETEXE,COMETPAR,CRUX,BEDTOOLDIR,PERCOLATOR
 	## read global parameters
 	config = ConfigParser.ConfigParser()
 	config.readfp(open('config.ini',"rb"))
@@ -78,6 +78,7 @@ def test(outdir,outfile):
 	COMETEXE = config.get('global','COMETEXE')
 	CRUX = config.get('global','CRUX')
 	BEDTOOLDIR = config.get('global','BEDTOOLDIR')
+	PERCOLATOR = config.get('global','PERCOLATOR')
 	OUTDIR = outdir
 
 	fastaname = outdir+'/'+outfile+'.fa'
@@ -85,8 +86,9 @@ def test(outdir,outfile):
 	sjfile = outdir+'/'+outfile+'.SJ'
 	customdb = outdir+'/merge_'+outfile+'.fa'
 	cometoutdir = 'comet_'+outfile
-	percolatorCrux(cometoutdir)
-	percolatorfile = outdir + '/cruxoutput_' + outfile + '/percolator.target.peptides.txt'
+	#percolatorCrux(cometoutdir)
+	#percolator(cometoutdir)
+	percolatorfile = outdir + '/percolator_' + outfile + '/percolator.target.peptides.txt'
 	exonfile = 'data/Ensembl_Alu_25bp_0.5.unique.sorted.bed'
 	postPercolatorFilter(fastaname,percolatorfile,exonfile,sjfile)
 	
@@ -141,13 +143,14 @@ def percolatorCrux(cometdir):
 
 def percolator(cometdir):
 	cometfiles = os.listdir(OUTDIR+'/'+cometdir)
-	PercolatorOutDir = OUTDIR+'/'+cometdir.replace('comet','Percolator')
+	PercolatorOutDir = OUTDIR+'/'+cometdir.replace('comet','percolator')
 	if not os.path.exists(PercolatorOutDir):
 		os.makedirs(PercolatorOutDir)
-	os.system('cat ' + OUTDIR+'/'+cometdir + '*.pin > ' + PercolatorOutDir + '/PercolatorTmp.pin')
+	os.system('cat ' + OUTDIR+'/'+cometdir + '/*.pin > ' + PercolatorOutDir + '/percolatorTmp.pin')
+	# merge multiple pin files to single one to input to percolator
 	data = []
 	n = 0
-	with open(PercolatorOutDir+'/PercolatorTmp.pin', 'r') as f:
+	with open(PercolatorOutDir+'/percolatorTmp.pin', 'r') as f:
 		for line in f:
 			line = line.rstrip('\r\n')
 			if n == 0:
@@ -155,20 +158,21 @@ def percolator(cometdir):
 				n += 1
 			if line.find('id') != 0:
 				data.append(line)
-	with open(PercolatorOutDir+'/PercolatorTmp.pin', 'w') as f:
+	with open(PercolatorOutDir+'/percolatorTmp.pin', 'w') as fout:
 		for d in data:
 			fout.write(d+'\n')
-	os.system(PERCOLATOR + ' ' + PercolatorOutDir+'/PercolatorTmp.pin -t 0.05 -F 0.05 -m ' + PercolatorOutDir + '/percolator.target.psm.txt -r '+ PercolatorOutDir +'/percolator.target.peptides.txt')
+	os.system(PERCOLATOR + ' ' + PercolatorOutDir+'/percolatorTmp.pin -t 0.05 -F 0.05 -m ' + PercolatorOutDir + '/percolator.target.psm.txt -r '+ PercolatorOutDir +'/percolator.target.peptides.txt')
 	return PercolatorOutDir + '/percolator.target.peptides.txt'
 
 def postPercolatorFilter(fastaname,percolatorfile,exonfille,sjfile, threadNum=1):
 	tmpdir = OUTDIR+'/tmp'
-	os.system(BINDIR+'/cruxpep_percolator_test2parellel.py -p %s -c %s -e %s -j %s -t %s -n %d -d %s' % (fastaname,percolatorfile,exonfille,sjfile,tmpdir,threadNum,BEDTOOLDIR))
+	#os.system(BINDIR+'/cruxpep_percolator_test2parellel.py -p %s -c %s -e %s -j %s -t %s -n %d -d %s' % (fastaname,percolatorfile,exonfille,sjfile,tmpdir,threadNum,BEDTOOLDIR))
+	os.system(BINDIR+'/percolator_test2parellel.py -p %s -c %s -e %s -j %s -t %s -n %d -d %s' % (fastaname,percolatorfile,exonfille,sjfile,tmpdir,threadNum,BEDTOOLDIR))
 
 def custom_formatwarning(msg, *a):
 	# ignore everything except the message
 	return str(msg) + '\n'
 
 if __name__ == '__main__':
-	main()
-	#test(sys.argv[1],sys.argv[2])
+	#main()
+	test(sys.argv[1],sys.argv[2])
