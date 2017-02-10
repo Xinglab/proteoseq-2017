@@ -24,9 +24,10 @@ def main():
 	HOMEDIR = re.sub(r'\/$','',options.homedir)
 	INSTALLDIR = re.sub(r'\/$','',options.install)
 	os.system('tar -zxvf wine_dir.tgz -C ' + HOMEDIR)
-	homedir1 = HOMEDIR.replace('/','\\')
-	cmd1 = 'sed -i s\'/homedirXXXXXA/' + homedir1 +'/g\' ' + HOMEDIR + '/.wine/*.reg'
-	cmd2 = 'sed -i s\'/homedirXXXXXB/' + options.homedir +'/g\' ' + HOMEDIR + '/.wine/*.reg'
+	homedir1 = HOMEDIR.replace('/','\/')
+	homedir2 = HOMEDIR.replace('/','\\\\\\\\')
+	cmd1 = 'sed -i s\'/homedirXXXXXB/' + homedir1 +'/g\' ' + HOMEDIR + '/.wine/*.reg'
+	cmd2 = 'sed -i s\'/homedirXXXXXA/' + homedir2 +'/g\' ' + HOMEDIR + '/.wine/*.reg'
 	os.system(cmd1)
 	os.system(cmd2)
 	
