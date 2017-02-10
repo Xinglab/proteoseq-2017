@@ -13,7 +13,7 @@ ybwang@hust.edu.cn
 		cd proteoseq-master
 
 		# install by running the 'install file'
-		python install.py --homedir /u/home/y/ybwang --install directorToInstall
+		Usage: python install.py --homedir /u/home/y/ybwang --install directorToInstall
 		Example:
 		python install.py --homedir /u/home/y/ybwang --install ~/scratch/ptptest
 
