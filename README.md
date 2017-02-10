@@ -15,11 +15,12 @@ ybwang@hust.edu.cn
 		# install by running the 'install file'
 		python install.py --homedir /u/home/y/ybwang --install directorToInstall
 		Example:
-		python install.py --homedir /u/home/y/ybwang --install ~/scratch/ptp
+		python install.py --homedir /u/home/y/ybwang --install ~/scratch/ptptest
 
 		# run the pipeline to test
 		Usage: ptp.py -b Aligned.out.sorted.bam -j SJ.tab.out -p proteomicsdir -e HSExonfile -o outdir
 		Example:
+		cd ~/scratch/ptptest
 		ln -s /u/home/f/frankwoe/nobackup/AST/Yoav_Gilad_YRI/RNA/star_output/GM18486.rna/ RNA
 		ln -s /u/home/y/ybwang/nobackup-yxing/data/Yoav_Gilad_proteom/GM18486/ PRO		
 		python ptp.py -b RNA/Aligned.out.sorted.bam -j RNA/SJ.out.tab -p PRO/ -e data/Ensembl_Alu_25bp_0.5.unique.sorted.bed
