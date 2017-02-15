@@ -30,7 +30,7 @@ def main():
 	parser.add_option('-b','--bamfile', dest='bamfile', help='bam file from STAR [Default %default]')
 	parser.add_option('-j','--sjfile', dest='sjfile', help='SJ.tab.out file from STAR [Default %default]')
 	parser.add_option('-p','--rawdir', dest='rawdir', help='proteomics dir (format: raw/mzXML) [Default %default]')
-	parser.add_option('-e','--exonfile', dest='exonfile', help='exons file (bed format) [Default %default]')
+	parser.add_option('-e','--exonfile', dest='exonfile',default='None', help='exons file (bed format) [Default %default]')
 	parser.add_option('-o', dest='outdir',default=OUTDIR, help='Output dir filename [Default %default]')	
 	# parameters for translation
         parser.add_option('--l', dest='flank', type='int', default=66, help='Extend flanking junction ends by this number of bp [Default %default]')
@@ -38,14 +38,18 @@ def main():
         parser.add_option('--min-junc-reads', dest='min_junc_reads', default=2, type='int', help='Minimum number of reads required spanning the junction [Default %default]')
 	(options, args) = parser.parse_args()
 	# check parameters
-	if options.sjfile is None or options.bamfile is None or options.exonfile is None or options.rawdir is None:
+	if options.sjfile is None or options.bamfile is None or options.rawdir is None:
 		sys.exit("[ERROR] "+parser.get_usage())
+	if options.exonfile != 'None' and not os.path.exists(options.exonfile):
+		sys.exit("[ERROR] Please input exon file or use '-e None'\n"+parser.get_usage())
 	if options.outdir is not None:
 		OUTDIR = re.sub(re.compile("/$"),"",options.outdir)
 
 	# mkdir 'outdir' if not exists
 	if not os.path.exists(OUTDIR):
 		os.makedirs(OUTDIR)
+
+	# warning and logging
 	warnings.formatwarning = custom_formatwarning
 	logging.basicConfig(filename=OUTDIR+'/pipeline.log', level=logging.INFO)
 
@@ -102,7 +106,8 @@ def parseSJ(SJfile):
 def translate(bamfile,sjfile,exonfiles,flank,genome_file,min_junc_reads,outfile):
 	if os.path.exists(bamfile) == False:
 		sys.exit("[ERROR]: Bam file not exists!\n")
-	cmd = "python "+BINDIR+"/"+"translateJunc-star.py -o " + outfile + " -l " + str(flank) + " --min-junc-reads=" + str(min_junc_reads) + " -g " + genome_file + " " + bamfile + " " + sjfile + " " + exonfiles
+	scriptname = 'translateJunc-star.py' if exonfiles != 'None' else 'translateJunc-star-allSJ.py'
+	cmd = "python "+BINDIR + "/" + scriptname + " -o " + outfile + " -l " + str(flank) + " --min-junc-reads=" + str(min_junc_reads) + " -g " + genome_file + " " + bamfile + " " + sjfile + " " + exonfiles
 	os.system(cmd)
 	return os.path.basename(outfile)
 
@@ -166,8 +171,9 @@ def percolator(cometdir):
 
 def postPercolatorFilter(fastaname,percolatorfile,exonfille,sjfile, threadNum=1):
 	tmpdir = OUTDIR+'/tmp'
+	scriptname = 'percolator_test2parellel.py' if exonfille != 'None' else 'percolator_directoutput.py'
 	#os.system(BINDIR+'/cruxpep_percolator_test2parellel.py -p %s -c %s -e %s -j %s -t %s -n %d -d %s' % (fastaname,percolatorfile,exonfille,sjfile,tmpdir,threadNum,BEDTOOLDIR))
-	os.system('python ' + BINDIR+'/percolator_test2parellel.py -p %s -c %s -e %s -j %s -t %s -n %d -d %s' % (fastaname,percolatorfile,exonfille,sjfile,tmpdir,threadNum,BEDTOOLDIR))
+	os.system('python ' + BINDIR+'/' + scriptname + ' -p %s -c %s -e %s -j %s -t %s -n %d -d %s' % (fastaname,percolatorfile,exonfille,sjfile,tmpdir,threadNum,BEDTOOLDIR))
 
 def custom_formatwarning(msg, *a):
 	# ignore everything except the message
