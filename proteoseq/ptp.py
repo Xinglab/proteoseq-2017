@@ -24,13 +24,13 @@ def main():
 	PERCOLATOR = config.get('global','PERCOLATOR')
 
 	## read pipeline parameters
-	usage = 'usage: %prog -b Aligned.out.sorted.bam -j SJ.tab.out -p proteomicsdir -e HSExonfile -o outdir --l 66 --g genome_file --min-junc-reads 2 --trim-RK False'
+	usage = 'usage: %prog -b Aligned.out.sorted.bam -j SJ.tab.out -p proteomicsdir -e HSExonfile/None -o outdir --l 66 --g genome_file --min-junc-reads 2 --trim-RK False'
 	parser = OptionParser(usage)
 	# necessary parameters
 	parser.add_option('-b','--bamfile', dest='bamfile', help='bam file from STAR [Default %default]')
 	parser.add_option('-j','--sjfile', dest='sjfile', help='SJ.tab.out file from STAR [Default %default]')
 	parser.add_option('-p','--rawdir', dest='rawdir', help='proteomics dir (format: raw/mzXML) [Default %default]')
-	parser.add_option('-e','--exonfile', dest='exonfile',default='None', help='exons file (bed format) [Default %default]')
+	parser.add_option('-e','--exonfile', dest='exonfile',default='None', help='exons file (bed format) or use None to search all junctions peptide [Default %default]')
 	parser.add_option('-o', dest='outdir',default=OUTDIR, help='Output dir filename [Default %default]')	
 	# parameters for translation
         parser.add_option('--l', dest='flank', type='int', default=66, help='Extend flanking junction ends by this number of bp [Default %default]')
