@@ -5,7 +5,7 @@ RNA-seq and proteomics integrated pipeline for identification of peptide evidenc
 ybwang@hust.edu.cn
 
 
-## USAGE (2017-02-08)
+## USAGE (2017-02-16)
 		# download the install files
 		# git clone https://github.com/Xinglab/proteoseq.git
 		download using the url: https://github.com/Xinglab/proteoseq/archive/master.zip
