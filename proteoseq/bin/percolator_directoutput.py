@@ -17,7 +17,7 @@ chrPepHash = {}
 infoArr = []
 
 def main():
-	usage = 'usage: %prog <options> -p junctionPep -c percolatorfile -e Alu.unique.bed -j SJdir -t tmpdir -n threadNum -d bedtooldir'
+	usage = 'usage: %prog <options> -p junctionPep -c percolatorfile -e None -j SJdir -t tmpdir -n threadNum -d bedtooldir'
 	parser = OptionParser(usage)
 	parser.add_option('-p', dest='pepfile', help='junction pep file [Default %default]')
 	parser.add_option('-c', dest='cruxfile', help='percolator.target.peptides.txt from crux [Default %default]')
@@ -39,21 +39,14 @@ def main():
 	sample = os.path.basename(options.pepfile)
 	print '======'+sample
 	print '# obtain percolator result from '+sample
-	print '# bedfile:',options.exonfile
 	
-	peparr = []
 	pephash = {}
-	seqhash = {}
-	n = 0
 	with open(options.cruxfile,'r') as f:
 		for line in f:
 			ele = line.rstrip().split("\t")
 			if ele[0] != 'PSMId' and float(ele[2]) < 0.05:
-				peparr.append(ele[3]+"\t"+ele[4])
 				pep = re.sub(re.compile("\.|\*|-"),'',ele[4])
 				pephash[pep] = ele[3]
-				seqhash["seq_"+str(n)] = pep
-				n += 1
 	# 2
 	junctionHash = {}
 	print '# building index for junction SJ.out.tab'
@@ -73,33 +66,21 @@ def main():
 		for line in f:
 			if line[0] == '>': hid = line.rstrip().replace(">",'')
 			else: lenSeqHash[len(line.rstrip())][hid] = ''
-	
 	arrSeq = []
 	arrHash = {}
 	for k in sorted(lenSeqHash.keys()):
 		arrHash[k] = len(arrSeq) + 1 - 1
 		arrSeq.append(lenSeqHash[k].keys())
 
-	# 4
-
 	# 5
 	print "# read junction pep and write to bed"
 	seq = {}
 	head = ''
-	if not os.path.exists(options.tmpdir): os.makedirs(options.tmpdir)
-	with open(options.tmpdir+'/'+sample+'.bed','w') as fw:
-		with open(options.pepfile,'r') as f:
-			for line in f:
-				if line[0] == '>':
-					head = line.rstrip()[1:]
-					arr = head.split("_")
-					chrom,strand = arr[0],arr[4]
-					left,jl = arr[5].split(',')[1:3]
-					jr,right = arr[6].split(',')[0:2]
-					fw.write("\t".join([chrom,str(int(left)-1),jl,head+'_left','0',strand,"\n"]))
-					fw.write("\t".join([chrom,str(int(jr)-1),right,head+'_right','0',strand,"\n"]))
-				else: seq[head] = line.rstrip()
-	# 6
+	with open(options.pepfile,'r') as f:
+		for line in f:
+			if line[0] == '>':
+				head = line.rstrip()[1:]
+			else: seq[head] = line.rstrip()
 
 	# 7
 	print '# build index2 for chr.. seq'
@@ -139,28 +120,27 @@ def main():
 	for l in infoArr:
 		ele = l.split("\t")
 		info[ele[0]].append(l)
-
+	
 	# 9
 	print '# get peptide under fdr'
 	print '# peptide\tstart\tend\tAlu/HSE_exon\ttag\tid\tseq'
+	allPepHash = defaultdict(dict)
 	novelChrPepHash = {}
 	for peptide in info.keys():
 		ks = info[peptide]
+		tag = 0
 		for k in ks:
 			head = k.split("\t")[1]
-			arr = head.split("_")
-			junc = '_'.join(arr[0:3]+arr[4:5])
-			if junc not in junctionHash:
-				sys.exit("[ERROR]:\t junction '%s' not exists in junction files\n" % options.sjfile)
-			if junctionHash[junc] == 0:
-				novelChrPepHash[peptide] = chrPepHash[peptide]
+			if head.find(',') != -1: # if peptide could be mapped to uniprot, means annotated peptide
+				tag = 1
+		if tag == 0:
+			novelChrPepHash[peptide] = chrPepHash[peptide]
 
 	warnings.warn("# num of pep from novel junction:\t %s" % len(novelChrPepHash))
 	warnings.warn("# num of pep from annot junction:\t %s" % (len(chrPepHash) - len(novelChrPepHash)))
 
-	
 	for peptide in chrPepHash.keys():
-		#if peptide in novelChrPepHash: continue
+		if peptide in novelChrPepHash: continue
 		ks = info[peptide]
 		for k in ks:
 			print k+"\t"+chrPepHash[peptide] + "\t1"
@@ -174,8 +154,6 @@ def main():
 			print k + "\t"+chrPepHash[ele[0]] + "\t0"
 	
 	## end
-
-
 def aaindex(start,end):
 	length = abs(end - start)+1
 	index = length / 3 if length % 3 == 0 else (length - length % 3) / 3 + 1
@@ -183,15 +161,15 @@ def aaindex(start,end):
 
 def localFDR(chrPepHash,FDR=0.05):
 	if len(chrPepHash) == 0: return ''
-	uniq = sorted(list(set(chrPepHash.values)))
+	uniq = sorted(list(set(chrPepHash.values())))
 	warnings.warn("# Before FDR %f filter:\t%d" %(FDR,len(chrPepHash)))
 	result,n = '',0
 	for s in uniq:
-		sums,content,num,total = 0,'',0,len(chrPepHash.keys())
+		sums,content,num,total = 0.0,'',0,len(chrPepHash.keys())
 		for l in chrPepHash.keys():
 			pep = chrPepHash[l]
 			if pep <= s:
-				sums += pep
+				sums += float(pep)
 				num += 1
 				content += str(l)+"\t"+str(pep)+";"
 		fdr = sums / num
@@ -221,13 +199,12 @@ def run(tNum,pephash,arrHash,arrStart,arrSeq2,seq):
 		iStart = arrStart[firstAA][lenj] if firstAA in arrStart and lenj in arrStart[firstAA] else 0
 		iEnd = len(arrSeq2[firstAA]) - 1
 		arr = arrSeq2[firstAA]
-		#warnings.warn("Thread-%s\t%d\t%d\t%s\t%d\t%d\t%s\t%d" %(tNum,j,lenj,firstAA,iStart,iEnd,pepj,lenj))
+		warnings.warn("Thread-%s\t%d\t%d\t%s\t%d\t%d\t%s\t%d" %(tNum,j,lenj,firstAA,iStart,iEnd,pepj,lenj))
 		for i in arr[iStart:iEnd+1]:
 			index = seq[i].upper().find(pepj.upper())
 			if index != -1:
 				chrPepHash[pepj] = pephash[pepj]
 				s = '\t'.join([pepj,i])
-				#s = "\t".join([pepj,str(start),str(end),str(k),tag,str(i),seq[i],exons,str(startPos),str(endPos)])
 				infoArr.append(s)
 		j += 1
 	return (chrPepHash,infoArr)
