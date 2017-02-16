@@ -131,7 +131,7 @@ def main():
 		tag = 0
 		for k in ks:
 			head = k.split("\t")[1]
-			if head.find(',') != -1: # if peptide could be mapped to uniprot, means annotated peptide
+			if head.find(',') == -1: # if peptide could be mapped to uniprot, means annotated peptide
 				tag = 1
 		if tag == 0:
 			novelChrPepHash[peptide] = chrPepHash[peptide]
