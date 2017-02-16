@@ -173,7 +173,13 @@ def postPercolatorFilter(fastaname,percolatorfile,exonfille,sjfile, threadNum=1)
 	tmpdir = OUTDIR+'/tmp'
 	scriptname = 'percolator_test2parellel.py' if exonfille != 'None' else 'percolator_directoutput.py'
 	#os.system(BINDIR+'/cruxpep_percolator_test2parellel.py -p %s -c %s -e %s -j %s -t %s -n %d -d %s' % (fastaname,percolatorfile,exonfille,sjfile,tmpdir,threadNum,BEDTOOLDIR))
-	os.system('python ' + BINDIR+'/' + scriptname + ' -p %s -c %s -e %s -j %s -t %s -n %d -d %s' % (fastaname,percolatorfile,exonfille,sjfile,tmpdir,threadNum,BEDTOOLDIR))
+	if exonfille != 'None':
+		os.system('python ' + BINDIR+'/percolator_test2parellel.py  -p %s -c %s -e %s -j %s -t %s -n %d -d %s' % (fastaname,percolatorfile,exonfille,sjfile,tmpdir,threadNum,BEDTOOLDIR))
+	else:
+		basename = os.path.basename(fastaname)
+		mergefasta = fastaname.replace(basename,'merge_'+basename)
+		os.system('python ' + BINDIR+'/percolator_directoutput.py  -p %s -c %s -e %s -j %s -t %s -n %d -d %s' % (mergefasta,percolatorfile,exonfille,sjfile,tmpdir,threadNum,BEDTOOLDIR))
+		
 
 def custom_formatwarning(msg, *a):
 	# ignore everything except the message
