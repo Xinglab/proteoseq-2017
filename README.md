@@ -1,4 +1,3 @@
-# proteoseq
 ##Proteotranscriptome pipeline
 RNA-seq and proteomics integrated pipeline for identification of peptide evidence of Alu exon or Human specific exons
 <br />
@@ -9,7 +8,7 @@ ybwang@hust.edu.cn
     2. add samtools directory to the $PATH environment variable
 
 # Installation:
-    # download the install files or git clone https://github.com/Xinglab/proteoseq.git
+    # download the install files or git clone https://github.com/Xinglab/proteoseq.git<br />
     # download using the url: https://github.com/Xinglab/proteoseq/archive/master.zip
     unzip unzip proteoseq-master.zip
     cd proteoseq-master
