@@ -2,7 +2,7 @@
 
 from optparse import OptionParser
 from collections import defaultdict
-import os,sys,random,datetime,warnings,re
+import os,sys,random,datetime,warnings,re,datetime
 import logging
 import subprocess
 import ConfigParser
@@ -24,24 +24,27 @@ def main():
 	PERCOLATOR = config.get('global','PERCOLATOR')
 
 	## read pipeline parameters
-	usage = 'usage: %prog -b Aligned.out.sorted.bam -j SJ.tab.out -p proteomicsdir -e HSExonfile/None -o outdir --l 66 --g genome_file --min-junc-reads 2 --trim-RK False'
+	usage = 'usage: %prog -b Aligned.out.sorted.bam -j SJ.tab.out -p proteomicsdir -e HSExonfile/None -d dabatase -g genome_file -o outdir --l 66 --min-junc-reads 2 --trim-RK False'
 	parser = OptionParser(usage)
 	# necessary parameters
 	parser.add_option('-b','--bamfile', dest='bamfile', help='bam file from STAR [Default %default]')
 	parser.add_option('-j','--sjfile', dest='sjfile', help='SJ.tab.out file from STAR [Default %default]')
 	parser.add_option('-p','--rawdir', dest='rawdir', help='proteomics dir (format: raw/mzXML) [Default %default]')
 	parser.add_option('-e','--exonfile', dest='exonfile',default='None', help='exons file (bed format) or use None to search all junctions peptide [Default %default]')
+	parser.add_option('-d','--database', dest='database',default='data/UP000005640_9606_additional_cdhit1.fasta', help='fasta file to perform the MS search[Default %default]')
 	parser.add_option('-o', dest='outdir',default=OUTDIR, help='Output dir filename [Default %default]')	
 	# parameters for translation
         parser.add_option('--l', dest='flank', type='int', default=66, help='Extend flanking junction ends by this number of bp [Default %default]')
-        parser.add_option('--g', dest='genome_file', default=CHROMS, help='genomic fasta directory (by chromosomes) [Default %default]')
+        parser.add_option('-g', dest='genome_file', default=CHROMS, help='genomic fasta directory (by chromosomes) [Default %default]')
         parser.add_option('--min-junc-reads', dest='min_junc_reads', default=2, type='int', help='Minimum number of reads required spanning the junction [Default %default]')
 	(options, args) = parser.parse_args()
 	# check parameters
 	if options.sjfile is None or options.bamfile is None or options.rawdir is None:
 		sys.exit("[ERROR] "+parser.get_usage())
 	if options.exonfile != 'None' and not os.path.exists(options.exonfile):
-		sys.exit("[ERROR] Please input exon file or use '-e None'\n"+parser.get_usage())
+			sys.exit("[ERROR] Please input exon file or use '-e None'\n"+parser.get_usage())
+	if not os.path.exists(options.database):
+			sys.exit("[ERROR] Please input database file '-d database'\n"+parser.get_usage())
 	if options.outdir is not None:
 		OUTDIR = re.sub(re.compile("/$"),"",options.outdir)
 
@@ -52,6 +55,9 @@ def main():
 	# warning and logging
 	warnings.formatwarning = custom_formatwarning
 	logging.basicConfig(filename=OUTDIR+'/pipeline.log', level=logging.INFO)
+	
+	# print parameters
+	printParameters(options.bamfile, options.sjfile, options.rawdir, options.exonfile, options.database, OUTDIR, options.genome_file, options.flank,options.min_junc_reads)
 
 	## start
 	# 1. parse SJ.tab.out file
@@ -60,9 +66,9 @@ def main():
 	warnings.warn('## output file name: %s' % sjfilename.replace('.SJ',''))
 	# 2. translate junctions to peptide
 	warnings.warn("## starting translating into junction peptides")
-	fastaname = translate(options.bamfile,OUTDIR+"/"+sjfilename,options.exonfile,options.flank,options.genome_file,options.min_junc_reads,OUTDIR+"/"+sjfilename.replace('SJ','fa'))
+	fastaname = translate(options.bamfile,OUTDIR+"/"+sjfilename,options.exonfile,options.flank,options.genome_file,options.min_junc_reads,OUTDIR+"/"+sjfilename.replace('SJ','fa'),OUTDIR)
 	# 3. merge peptides to uniprot database
-	customdb = mergePeps2Database(fastaname)
+	customdb = mergePeps2Database(fastaname,options.database)
 	# 4. database search using comet
 	cometoutdir = databaseSearch(options.rawdir, OUTDIR+"/"+customdb)
 	# 5. percolator (or crux percolator)
@@ -95,6 +101,21 @@ def test(outdir,outfile):
 	percolatorfile = outdir + '/percolator_' + outfile + '/percolator.target.peptides.txt'
 	exonfile = 'data/Ensembl_Alu_25bp_0.5.unique.sorted.bed'
 	postPercolatorFilter(fastaname,percolatorfile,exonfile,sjfile)
+
+def printParameters(b,j,p,e,d,o,g,l,m):
+	time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+	print '\n# Parameters\t'+str(time)
+	print '@ Bam file:\t-b '+ b
+	print '@ Junction file:\t-j '+ j
+	print '@ Proteom dir:\t-p '+ p
+	print '@ Exon bed file:\t-e '+ e
+	print '@ Protein Database:\t-d '+ d
+	print '@ Genome dir:\t-g '+ g
+	print '@ Output dir:\t-o '+ o
+	print '@ Flanking region:\t--l ' + str(l)
+	print '@ Min reads:\t--min-junc-reads ' + str(m)
+	print '# ##########\n'
+
 	
 def parseSJ(SJfile):
 	if os.path.exists(SJfile) == False:
@@ -103,16 +124,16 @@ def parseSJ(SJfile):
 	os.system("python "+BINDIR+"/"+"parse_SJ.py " + SJfile + " " + OUTDIR+ "/" + outfile)
 	return os.path.basename(outfile)
 
-def translate(bamfile,sjfile,exonfiles,flank,genome_file,min_junc_reads,outfile):
+def translate(bamfile,sjfile,exonfiles,flank,genome_file,min_junc_reads,outfile,outdir):
 	if os.path.exists(bamfile) == False:
 		sys.exit("[ERROR]: Bam file not exists!\n")
 	scriptname = 'translateJunc-star.py' if exonfiles != 'None' else 'translateJunc-star-allSJ.py'
-	cmd = "python "+BINDIR + "/" + scriptname + " -o " + outfile + " -l " + str(flank) + " --min-junc-reads=" + str(min_junc_reads) + " -g " + genome_file + " " + bamfile + " " + sjfile + " " + exonfiles
+	cmd = "python "+BINDIR + "/" + scriptname + " -o " + outfile + " -l " + str(flank) + " --min-junc-reads=" + str(min_junc_reads) + " -g " + genome_file + " -G " + outdir + " " + bamfile + " " + sjfile + " " + exonfiles
 	os.system(cmd)
 	return os.path.basename(outfile)
 
-def mergePeps2Database(fastafile):
-	os.system("cat data/UP000005640_9606_additional_cdhit1.fasta " + OUTDIR+"/"+fastafile + ">" + OUTDIR + "/merge_" + fastafile)
+def mergePeps2Database(fastafile,database):
+	os.system("cat "+database+' ' + OUTDIR+"/"+fastafile + ">" + OUTDIR + "/merge_" + fastafile)
 	return os.path.basename(OUTDIR + "/merge_" + fastafile)
 
 def databaseSearch(rawdir, database):
@@ -122,7 +143,7 @@ def databaseSearch(rawdir, database):
 	mylogger = logging.getLogger("comet")
 
 	allfiles = os.listdir(RAWDIR)
-	rawfiles = [x for x in allfiles if re.search('\.raw|\.mzXML',x) is not None]
+	rawfiles = [x for x in allfiles if re.search('\.raw|\.mzXML|\.mzML',x) is not None]
 	if not os.path.exists(COMETOUTDIR): os.makedirs(COMETOUTDIR)
 	for i in rawfiles[0:]:
 		warnings.warn("\t# raw file:\t%s" % i)

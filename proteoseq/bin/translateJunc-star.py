@@ -1,8 +1,7 @@
 #!/usr/bin/python
 from optparse import OptionParser
-import os
+import os,glob,re
 from collections import defaultdict
-import re
 import subprocess
 import random
 import warnings
@@ -17,6 +16,7 @@ def main():
 	parser.add_option('--min-junc-reads', dest='min_junc_reads', default=2, type='int', help='Minimum number of reads required spanning the junction [Default %default]')
 	parser.add_option('--trim-RK', dest='trim_RK', default=False, action='store_true', help='Indicate whether trim both ends to first R or K [Default %default]')
 	parser.add_option('--verbose', dest='verbose', default=False, action='store_true', help='Verbose mode -- print DNA to stdin [Default %default]')
+	parser.add_option('-G', dest='genomeindexdir',help='genomic fasta index dir using samtool faidx [Default %default]')
 	
 	(options, args) = parser.parse_args()
 	
@@ -29,7 +29,8 @@ def main():
 	junctions_all = read_junctions(SJfile, junction_reads, options.min_junc_reads)
 	junctions = junctionFilter(junctions_all,HSExonfile)
 	junctions.append(['final',''])
-	#print len(junctions)
+	# make genome index using samtool faidx
+	genomedict = read_genome_dict(options.genome_file,options.genomeindexdir)
 	sj_dict = {}
 	with open(args[1], 'r') as f:
 		for line in f:
@@ -47,7 +48,7 @@ def main():
 				chr_juncs.append(junc[1:])
 				continue
 			else:
-				seqs = get_seqs(last_chr, chr_juncs, options.flank, options.genome_file,sj_dict)
+				seqs = get_seqs(last_chr, chr_juncs, options.flank, options.genome_file,sj_dict, genomedict, options.genomeindexdir)
 				for i in range(len(chr_juncs)):
 					id, strand, junc_left, junc_right = chr_juncs[i]
 					seq = seqs[i]
@@ -149,9 +150,9 @@ def translate_dna(seq):
 	
 	return prot_seqs
 
-def get_seqs(chr, junctions, flank, file_dir,sj_dict):
+def get_seqs(chr, junctions, flank, file_dir, sj_dict, genomedict, genomeindexdir):
 	seqs = []
-	genomic_seq = read_genome(file_dir, chr)
+	genomic_seq = read_genome(file_dir, chr, genomedict, genomeindexdir)
 	for id, strand, junc_left, junc_right in junctions:
 		tag_strand = '1'
 		if strand == '-':
@@ -187,18 +188,39 @@ def rev_complement(seq):
 	rev_comp_seq = map(lambda x: rev_dict[x], rev_seq)
 	return rev_comp_seq
 
-def read_genome(file_dir, chr):
+def read_genome_dict(file_dir, indexdir):
+	print '## building genome index using samtools'
+	os.system('cat ' + file_dir + '/*.fa > ' + indexdir + '/GENOME.fa')
+	os.system('samtools faidx ' + indexdir + '/GENOME.fa')
+	indexdict = {}
+	p = subprocess.Popen('cut -f 1,2 ' + indexdir + '/GENOME.fa.fai', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	for line in p.stdout.readlines():
+		ele = line.rstrip().split('\t')
+		indexdict[ele[0]] = ele[1]
+	retval = p.wait()
+	return indexdict
+
+def read_genome(file_dir, chr, indexdict, indexdir):
 	genome=[]
-	file_path = os.path.abspath('%s/%s.fa' % (file_dir, chr))
-	with open(file_path, 'r') as f:
-		for line in f:
-			line = line.rstrip()
-			if line[0] == '>':
-				chr=line[1:]
-				continue
-			else:
-				genome.extend(line)
+	p = subprocess.Popen('samtools faidx ' + indexdir + '/GENOME.fa ' + chr+':1-'+indexdict[chr], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	for line in p.stdout.readlines():
+		line = line.rstrip()
+		if line[0] == '>':
+			chr=line[1:]
+			continue
+		else:
+			genome.extend(line)
 	return genome
+	#file_path = os.path.abspath('%s/%s.fa' % (file_dir, chr))
+	#with open(file_path, 'r') as f:
+	#	for line in f:
+	#		line = line.rstrip()
+	#		if line[0] == '>':
+	#			chr=line[1:]
+	#			continue
+	#		else:
+	#			genome.extend(line)
+	#return genome
 
 
 def read_junctions(file, reads, min_reads):  # [chr, id, strand, left_junction, right_junction]
@@ -224,7 +246,7 @@ def read_junctions(file, reads, min_reads):  # [chr, id, strand, left_junction, 
 				junctions.append([ ele[0], key,  '+', [int(ele[1]) - left_max +1, int(ele[1]) -1 ], [int(ele[2]) +1, int(ele[2]) + right_max-1 ] ])
 			elif ele[3]=='2':
 				junctions.append([ ele[0], key,  '-', [int(ele[1]) - left_max +1, int(ele[1]) -1], [int(ele[2]) +1, int(ele[2]) + right_max-1 ] ])
-		print "# junction more than 6 reads:\t" + str(n) + "\t" + str(len(junctions))
+		print "\t--junction more than 6 reads:\t" + str(n) + "\t" + str(len(junctions))
 	return junctions
 
 
@@ -244,7 +266,7 @@ def junctionReads(sam_fn,hsexonfile):  # bam file input
 		exonid[readsid] = ''
 	retval = d.wait()
 ## print count
-	print '# reads mapping number:\t' + str(len(exonid))
+	print '\t--reads mapping number:\t' + str(len(exonid))
 ## get reads that span each junction
 	exon_juncid = {}
 	junctionReads = defaultdict(list) # junctionReads[chr_start_end] =[list of read ids that span junction]
@@ -272,8 +294,8 @@ def junctionReads(sam_fn,hsexonfile):  # bam file input
 				pos = jE
 	retval = p.wait()
 # print count
-	print '# junction reads mapping number:\t'+str(len(exon_juncid)) + "\t" + str(ntmp)
-	print '# junction number:\t'+str(len(junctionReads))
+	print '\t--junction reads mapping number:\t'+str(len(exon_juncid)) + "\t" + str(ntmp)
+	print '\t--junction number:\t'+str(len(junctionReads))
 # end of looping through sam file
 	return junctionReads	
 
@@ -293,7 +315,7 @@ def junctionFilter(junctionReads,hsexonfile):
 		keyr = i[0]+'_'+i[2]+'_'+'exonRight'+'_'+str(i[3][1])
 		if keyl in exonHashList or keyr in exonHashList:
 			junctionReads_filter.append(i)
-	print "# junction derived from exon:\t"+str(len(junctionReads_filter))
+	print "\t--junction derived from exon:\t"+str(len(junctionReads_filter))
 	return junctionReads_filter
 	
 if __name__=='__main__':
