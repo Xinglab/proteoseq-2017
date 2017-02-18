@@ -3,18 +3,16 @@ RNA-seq and proteomics integrated pipeline for identification of peptide evidenc
 <br />
 ybwang@hust.edu.cn
 
-# Requirements:
+## Requirements:
     1. python 2.7.x or above, samtools
     2. add samtools directory to the $PATH environment variable
 
-# Installation:
-    # download the install files or git clone https://github.com/Xinglab/proteoseq.git<br />
-    # download using the url: https://github.com/Xinglab/proteoseq/archive/master.zip
+## Installation:
     unzip unzip proteoseq-master.zip
     cd proteoseq-master
     python install.py --homedir /u/home/y/ybwang --install directorToInstall
 
-# USAGE (2017-02-16)
+## USAGE
     Usage: ptp.py -b Aligned.out.sorted.bam -j SJ.tab.out -p proteomicsdir -e HSExonfile -o outdir
     Parameter:
     -b bam file from STAR
@@ -27,7 +25,7 @@ ybwang@hust.edu.cn
     --l Extend flanking junction ends by this number of bp
     --min-junc-reads Minimum number of reads required spanning the junction
 
-# Example
+## Example
     # search peptides from Alu exons
     cd ~/scratch/ptptest
     ln -s /u/home/f/frankwoe/nobackup/AST/Yoav_Gilad_YRI/RNA/star_output/GM18486.rna/ RNA
