@@ -10,7 +10,7 @@ ybwang@hust.edu.cn
 
 # Installation:
     # download the install files or git clone https://github.com/Xinglab/proteoseq.git
-    download using the url: https://github.com/Xinglab/proteoseq/archive/master.zip
+    # download using the url: https://github.com/Xinglab/proteoseq/archive/master.zip
     unzip unzip proteoseq-master.zip
     cd proteoseq-master
     python install.py --homedir /u/home/y/ybwang --install directorToInstall
