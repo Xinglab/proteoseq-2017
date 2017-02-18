@@ -4,60 +4,43 @@ RNA-seq and proteomics integrated pipeline for identification of peptide evidenc
 <br />
 ybwang@hust.edu.cn
 
+# Requirements:
+    1. python 2.7.x or above, samtools
+    2. add samtools directory to the $PATH environment variable
 
-## USAGE (2017-02-16)
-		# download the install files
-		# git clone https://github.com/Xinglab/proteoseq.git
-		download using the url: https://github.com/Xinglab/proteoseq/archive/master.zip
-		unzip proteoseq-master.zip
-		cd proteoseq-master
+# Installation:
+    # download the install files or git clone https://github.com/Xinglab/proteoseq.git
+    download using the url: https://github.com/Xinglab/proteoseq/archive/master.zip
+    unzip unzip proteoseq-master.zip
+    cd proteoseq-master
+    python install.py --homedir /u/home/y/ybwang --install directorToInstall
 
-		# install by running the 'install file'
-		Usage: python install.py --homedir /u/home/y/ybwang --install directorToInstall
-		Example:
-		python install.py --homedir /u/home/y/ybwang --install ~/scratch/ptptest
+# USAGE (2017-02-16)
+    Usage: ptp.py -b Aligned.out.sorted.bam -j SJ.tab.out -p proteomicsdir -e HSExonfile -o outdir
+    Parameter:
+    -b bam file from STAR
+    -j SJ.tab.out file from STAR
+    -p proteomics dir
+    -e exons file (bed format) or use 'None' to search all junctions peptide [default: None]
+    -d database file to perform the MS comet search [default: data/Ensembl_Alu_25bp_0.5.unique.sorted.bed]
+    -g genomic fasta directory [default: /u/home/f/frankwoe/nobackup/hg19/hg19_by_chrom/]
+    -o output directory [default: outdir]
+    --l Extend flanking junction ends by this number of bp
+    --min-junc-reads Minimum number of reads required spanning the junction
 
-		# run the pipeline to test
-		Usage: ptp.py -b Aligned.out.sorted.bam -j SJ.tab.out -p proteomicsdir -e HSExonfile -o outdir
-		Example:
-		cd ~/scratch/ptptest
-		ln -s /u/home/f/frankwoe/nobackup/AST/Yoav_Gilad_YRI/RNA/star_output/GM18486.rna/ RNA
-		ln -s /u/home/y/ybwang/nobackup-yxing/data/Yoav_Gilad_proteom/GM18486/ PRO		
-		python ptp.py -b RNA/Aligned.out.sorted.bam -j RNA/SJ.out.tab -p PRO/ -e data/Ensembl_Alu_25bp_0.5.unique.sorted.bed
+# Example
+    # search peptides from Alu exons
+    cd ~/scratch/ptptest
+    ln -s /u/home/f/frankwoe/nobackup/AST/Yoav_Gilad_YRI/RNA/star_output/GM18486.rna/ RNA
+    ln -s /u/home/y/ybwang/nobackup-yxing/data/Yoav_Gilad_proteom/GM18486/ PRO
+    python ptp.py -b RNA/Aligned.out.sorted.bam -j RNA/SJ.out.tab -p PRO/ -e data/Ensembl_Alu_25bp_0.5.unique.sorted.bed -d data/UP000005640_9606_additional_cdhit1.fasta -g /u/home/f/frankwoe/nobackup/hg19/hg19_by_chrom/
 
-		# or search for all junctions peptides:
-		python ptp.py -b RNA/Aligned.out.sorted.bam -j RNA/SJ.out.tab -p PRO/ -e None
+    # or search for all junctions peptides:
+    python ptp.py -b RNA/Aligned.out.sorted.bam -j RNA/SJ.out.tab -p PRO/
 
-		# or submit the job using qsub
-		qsub -cwd -V -N PTP -l h_data=30G,h_rt=3:00:00 -M eplau -m bea ./example_submit.sh
+    # or submit the job using qsub
+    qsub -cwd -V -N PTP -l h_data=30G,h_rt=3:00:00 -M eplau -m bea ./example_submit.sh
 		
 
-## Test (2016-12-08)
-		# copy wine，comet to user's home directory
-		cd ~
-		cp -r /u/home/y/ybwang/wine-1.6.2 ./
-		cp -r /u/home/y/ybwang/.wine ./
-		cp -r /u/home/y/ybwang/.local ./
-		cd ~/.wine
-		sed -i 's/\\y\\\\ybwang/\\p\\\\panyang/g' *.reg
-		sed -i 's/ybwang/panyang/g' *.reg
-		
-		cd ~
-		cp -r /u/home/y/ybwang/comet ./
-		ln -s ~/wine-1.6.2/bin/win64 ~/comet/wine
-		
-		# test whether wine and comet could run normally, if the output is the usage of comet tool, then success
-		WINEDEBUG=fixme-all,err-all ~/comet/wine ~/comet/bin/comet.2015025.win64.exe
-		
-		# if the command could run normally
-		# and if crux tool installed successed，then run pipeline to test
-		ln -s /u/home/y/ybwang/nobackup-yxing-PROJECT/ProteoTranscriptomePipeline/ ybwangdir
-		python ./ptp.py -b ybwangdir/data/RNA/GM18486.rna/Aligned.out.sorted.bam -j ybwangdir/data/SJ_out/LCLs/GM18486.rna.SJ -p /u/home/y/ybwang/nobackup-yxing/data/Yoav_Gilad_proteom/GM18486 -e ybwangdir/data/Ensembl_Alu_25bp_0.5.unique.sorted.bed -o output
 
-##Dependencies
 
-##Build
-
-##Usage
-
-##Output
