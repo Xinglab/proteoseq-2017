@@ -74,13 +74,13 @@ def main():
 
 	# 5
 	print "# read junction pep and write to bed"
-	seq = {}
+	seq = defaultdict(str)
 	head = ''
 	with open(options.pepfile,'r') as f:
 		for line in f:
 			if line[0] == '>':
 				head = line.rstrip()[1:]
-			else: seq[head] = line.rstrip()
+			else: seq[head] += line.rstrip()
 
 	# 7
 	print '# build index2 for chr.. seq'
@@ -105,7 +105,7 @@ def main():
 				arrStart[f][l] = 0
 				arrSeq2[f] = tmplen[f][l].keys()
 
-	# 8
+	#rrSeq2[f]) 8
 	print '# multiple thread to get junction peptides'
 	thread_list = []
 	for i in xrange(options.threadNum):
@@ -120,7 +120,7 @@ def main():
 	for l in infoArr:
 		ele = l.split("\t")
 		info[ele[0]].append(l)
-	
+
 	# 9
 	print '# get peptide under fdr'
 	print '# peptide\tstart\tend\tAlu/HSE_exon\ttag\tid\tseq'
@@ -199,7 +199,7 @@ def run(tNum,pephash,arrHash,arrStart,arrSeq2,seq):
 		iStart = arrStart[firstAA][lenj] if firstAA in arrStart and lenj in arrStart[firstAA] else 0
 		iEnd = len(arrSeq2[firstAA]) - 1
 		arr = arrSeq2[firstAA]
-		warnings.warn("Thread-%s\t%d\t%d\t%s\t%d\t%d\t%s\t%d" %(tNum,j,lenj,firstAA,iStart,iEnd,pepj,lenj))
+		warnings.warn("Thread-%s\t%d\t%d\t%s\t%d\t%d\t%s" %(tNum,j,lenj,firstAA,iStart,iEnd,pepj))
 		for i in arr[iStart:iEnd+1]:
 			index = seq[i].upper().find(pepj.upper())
 			if index != -1:
@@ -207,7 +207,7 @@ def run(tNum,pephash,arrHash,arrStart,arrSeq2,seq):
 				s = '\t'.join([pepj,i])
 				infoArr.append(s)
 		j += 1
-	return (chrPepHash,infoArr)
+	#return (chrPepHash,infoArr)
 			
 def getindex():
 	global indexThread
