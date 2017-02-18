@@ -16,15 +16,15 @@ ybwang@hust.edu.cn
 ## USAGE
     Usage: ptp.py -b Aligned.out.sorted.bam -j SJ.tab.out -p proteomicsdir -e HSExonfile -o outdir
     Parameter:
-    -b bam file from STAR
-    -j SJ.tab.out file from STAR
-    -p proteomics dir
-    -e exons file (bed format) or use 'None' to search all junctions peptide [default: None]
-    -d database file to perform the MS comet search [default: data/Ensembl_Alu_25bp_0.5.unique.sorted.bed]
-    -g genomic fasta directory [default: /u/home/f/frankwoe/nobackup/hg19/hg19_by_chrom/]
-    -o output directory [default: outdir]
-    --l Extend flanking junction ends by this number of bp
-    --min-junc-reads Minimum number of reads required spanning the junction
+        -b bam file from STAR
+        -j SJ.tab.out file from STAR
+        -p proteomics dir
+        -e exons file (bed format) or use 'None' to search all junctions peptide [default: None]
+        -d database file to perform the MS comet search [default: data/Ensembl_Alu_25bp_0.5.unique.sorted.bed]
+        -g genomic fasta directory [default: /u/home/f/frankwoe/nobackup/hg19/hg19_by_chrom/]
+        -o output directory [default: outdir]
+        --l Extend flanking junction ends by this number of bp
+        --min-junc-reads Minimum number of reads required spanning the junction
 
 ## Example
     # search peptides from Alu exons
