@@ -8,6 +8,7 @@ ybwang@hust.edu.cn
     2. add samtools directory to the $PATH environment variable
 
 ## Installation:
+    # download using the url: https://github.com/Xinglab/proteoseq/archive/master.zip 
     unzip unzip proteoseq-master.zip
     cd proteoseq-master
     python install.py --homedir /u/home/y/ybwang --install directorToInstall
