@@ -2,6 +2,7 @@
 RNA-seq and proteomics integrated pipeline for identification of peptide evidence of Alu exon or Human specific exons
 <br />
 contact: ybwang@hust.edu.cn<br />
+Please leave message to me via email or report here https://github.com/Xinglab/proteoseq/issues if any questions <br />
 update: 2017-02-21
 
 ## Requirements:
