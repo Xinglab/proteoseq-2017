@@ -1,7 +1,7 @@
 ##Proteotranscriptome pipeline
 RNA-seq and proteomics integrated pipeline for identification of peptide evidence of Alu exon or Human specific exons
 <br />
-contact: ybwang@hust.edu.cn
+contact: ybwang@hust.edu.cn<br />
 update: 2017-02-21
 
 ## Requirements:
