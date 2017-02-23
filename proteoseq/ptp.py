@@ -74,7 +74,8 @@ def main():
 	# 5. percolator (or crux percolator)
 	percolatorfile = percolator(cometoutdir)
 	# 6. post-filter(extract peptide mapped Alu/HSE exons, and FDR filter)
-	postPercolatorFilter(OUTDIR+'/'+fastaname,percolatorfile,options.exonfile,OUTDIR+"/"+sjfilename)
+	outputfile = OUTDIR+"/"+sjfilename.replace('.SJ','.result.txt')
+	postPercolatorFilter(OUTDIR+'/'+fastaname,percolatorfile,options.exonfile,OUTDIR+"/"+sjfilename, outputfile)
 
 def test(outdir,outfile):
 	global OUTDIR,BINDIR,CHROMS,WINE,COMETEXE,COMETPAR,CRUX,BEDTOOLDIR,PERCOLATOR
@@ -104,17 +105,17 @@ def test(outdir,outfile):
 
 def printParameters(b,j,p,e,d,o,g,l,m):
 	time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-	print '\n# Parameters\t'+str(time)
-	print '@ Bam file:\t-b '+ b
-	print '@ Junction file:\t-j '+ j
-	print '@ Proteom dir:\t-p '+ p
-	print '@ Exon bed file:\t-e '+ e
-	print '@ Protein Database:\t-d '+ d
-	print '@ Genome dir:\t-g '+ g
-	print '@ Output dir:\t-o '+ o
-	print '@ Flanking region:\t--l ' + str(l)
-	print '@ Min reads:\t--min-junc-reads ' + str(m)
-	print '# ##########\n'
+	warnings.warn('# Parameters\t'+str(time))
+	warnings.warn('@ Bam file:\t-b '+ b)
+	warnings.warn('@ Junction file:\t-j '+ j)
+	warnings.warn('@ Proteom dir:\t-p '+ p)
+	warnings.warn('@ Exon bed file:\t-e '+ e)
+	warnings.warn('@ Protein Database:\t-d '+ d)
+	warnings.warn('@ Genome dir:\t-g '+ g)
+	warnings.warn('@ Output dir:\t-o '+ o)
+	warnings.warn('@ Flanking region:\t--l ' + str(l))
+	warnings.warn('@ Min reads:\t--min-junc-reads ' + str(m))
+	warnings.warn('# ##########\n')
 
 	
 def parseSJ(SJfile):
@@ -190,16 +191,16 @@ def percolator(cometdir):
 	os.system(PERCOLATOR + ' ' + PercolatorOutDir+'/percolatorTmp.pin -t 0.05 -F 0.05 -m ' + PercolatorOutDir + '/percolator.target.psm.txt -r '+ PercolatorOutDir +'/percolator.target.peptides.txt')
 	return PercolatorOutDir + '/percolator.target.peptides.txt'
 
-def postPercolatorFilter(fastaname,percolatorfile,exonfille,sjfile, threadNum=1):
+def postPercolatorFilter(fastaname,percolatorfile,exonfille,sjfile, outfile, threadNum=1):
 	tmpdir = OUTDIR+'/tmp'
 	scriptname = 'percolator_test2parellel.py' if exonfille != 'None' else 'percolator_directoutput.py'
 	#os.system(BINDIR+'/cruxpep_percolator_test2parellel.py -p %s -c %s -e %s -j %s -t %s -n %d -d %s' % (fastaname,percolatorfile,exonfille,sjfile,tmpdir,threadNum,BEDTOOLDIR))
 	if exonfille != 'None':
-		os.system('python ' + BINDIR+'/percolator_test2parellel.py  -p %s -c %s -e %s -j %s -t %s -n %d -d %s' % (fastaname,percolatorfile,exonfille,sjfile,tmpdir,threadNum,BEDTOOLDIR))
+		os.system('python ' + BINDIR+'/percolator_test2parellel.py  -p %s -c %s -e %s -j %s -t %s -n %d -d %s -o %s' % (fastaname,percolatorfile,exonfille,sjfile,tmpdir,threadNum,BEDTOOLDIR, outfile))
 	else:
 		basename = os.path.basename(fastaname)
 		mergefasta = fastaname.replace(basename,'merge_'+basename)
-		os.system('python ' + BINDIR+'/percolator_directoutput.py  -p %s -c %s -e %s -j %s -t %s -n %d -d %s' % (mergefasta,percolatorfile,exonfille,sjfile,tmpdir,threadNum,BEDTOOLDIR))
+		os.system('python ' + BINDIR+'/percolator_directoutput.py  -p %s -c %s -e %s -j %s -t %s -n %d -d %s -o %s' % (mergefasta,percolatorfile,exonfille,sjfile,tmpdir,threadNum,BEDTOOLDIR, outfile))
 		
 
 def custom_formatwarning(msg, *a):
