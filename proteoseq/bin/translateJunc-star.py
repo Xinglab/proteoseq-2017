@@ -18,6 +18,9 @@ def main():
 	parser.add_option('--verbose', dest='verbose', default=False, action='store_true', help='Verbose mode -- print DNA to stdin [Default %default]')
 	parser.add_option('-G', dest='genomeindexdir',help='genomic fasta index dir using samtool faidx [Default %default]')
 	
+	# print to console information
+	warnings.formatwarning = custom_formatwarning
+
 	(options, args) = parser.parse_args()
 	
 	if len(args) < 3:
@@ -67,7 +70,7 @@ def main():
 						out.write(id_line + '_startTrim:'+str(left_trim)+'_ORF:' + str(j) + '\n' + tr_prot_seq + '\n')
 				chr_juncs = [junc[1:]]
 				last_chr = chr
-		print "# stop and 5 aa less pep:\t"+str(np)
+		warnings.warn("# stop and 5 aa less pep:\t"+str(np))
 
 def trim_prot(prot_seq, trim_RK = True):
 	#print "protein len:\t", prot_seq,"\t",len(prot_seq),"\t",
@@ -246,7 +249,7 @@ def read_junctions(file, reads, min_reads):  # [chr, id, strand, left_junction, 
 				junctions.append([ ele[0], key,  '+', [int(ele[1]) - left_max +1, int(ele[1]) -1 ], [int(ele[2]) +1, int(ele[2]) + right_max-1 ] ])
 			elif ele[3]=='2':
 				junctions.append([ ele[0], key,  '-', [int(ele[1]) - left_max +1, int(ele[1]) -1], [int(ele[2]) +1, int(ele[2]) + right_max-1 ] ])
-		print "\t--junction more than 6 reads:\t" + str(n) + "\t" + str(len(junctions))
+		warnings.warn("# --junction more than 6 reads:\t" + str(n) + "\t" + str(len(junctions)))
 	return junctions
 
 
@@ -266,7 +269,7 @@ def junctionReads(sam_fn,hsexonfile):  # bam file input
 		exonid[readsid] = ''
 	retval = d.wait()
 ## print count
-	print '\t--reads mapping number:\t' + str(len(exonid))
+	warnings.warn('# --reads mapping number:\t' + str(len(exonid)))
 ## get reads that span each junction
 	exon_juncid = {}
 	junctionReads = defaultdict(list) # junctionReads[chr_start_end] =[list of read ids that span junction]
@@ -294,8 +297,8 @@ def junctionReads(sam_fn,hsexonfile):  # bam file input
 				pos = jE
 	retval = p.wait()
 # print count
-	print '\t--junction reads mapping number:\t'+str(len(exon_juncid)) + "\t" + str(ntmp)
-	print '\t--junction number:\t'+str(len(junctionReads))
+	warnings.warn('# --junction reads mapping number:\t'+str(len(exon_juncid)) + "\t" + str(ntmp))
+	warnings.warn('# --junction number:\t'+str(len(junctionReads)))
 # end of looping through sam file
 	return junctionReads	
 
@@ -315,8 +318,11 @@ def junctionFilter(junctionReads,hsexonfile):
 		keyr = i[0]+'_'+i[2]+'_'+'exonRight'+'_'+str(i[3][1])
 		if keyl in exonHashList or keyr in exonHashList:
 			junctionReads_filter.append(i)
-	print "\t--junction derived from exon:\t"+str(len(junctionReads_filter))
+	warnings.warn("# --junction derived from exon:\t"+str(len(junctionReads_filter)))
 	return junctionReads_filter
+
+def custom_formatwarning(msg, *a):
+	return str(msg) + '\n'
 	
 if __name__=='__main__':
 	main()
