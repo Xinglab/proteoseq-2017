@@ -17,7 +17,7 @@ chrPepHash = {}
 infoArr = []
 
 def main():
-	usage = 'usage: %prog <options> -p junctionPep -c cruxfile -e Alu.unique.bed -j SJdir -t tmpdir -n threadNum -d bedtooldir'
+	usage = 'usage: %prog <options> -p junctionPep -c cruxfile -e Alu.unique.bed -j SJdir -t tmpdir -n threadNum -d bedtooldir -o outfile'
 	parser = OptionParser(usage)
 	parser.add_option('-p', dest='pepfile', help='junction pep file [Default %default]')
 	parser.add_option('-c', dest='cruxfile', help='percolator.target.peptides.txt from crux [Default %default]')
@@ -26,6 +26,7 @@ def main():
 	parser.add_option('-t', dest='tmpdir',default='tmp',help='tmp dir [Default %default]')
 	parser.add_option('-n', dest='threadNum',type='int',default=1,help='thread num [Default %default]')
 	parser.add_option('-d', dest='bedtooldir',help='bedtool bin directory path')
+	parser.add_option('-o', dest='outfile',default='result.txt',help='final output file')
 	
 	(options, args) = parser.parse_args()
 
@@ -223,12 +224,15 @@ def main():
 	warnings.warn("# num of pep from novel junction:\t %s" % len(novelChrPepHash))
 	warnings.warn("# num of pep from annot junction:\t %s" % (len(chrPepHash) - len(novelChrPepHash)))
 
+	result = ['Peptide\tStart\tEnd\tregion of exon\ttag\tJunction ID\tJunction Pep\tExon\tExon S\tExon E\tPEP\tKnown/Novel']
 	
 	for peptide in chrPepHash.keys():
 		if peptide in novelChrPepHash: continue
 		ks = info[peptide]
 		for k in ks:
-			print k+"\t"+chrPepHash[peptide] + "\t1"
+			s = k+"\t"+chrPepHash[peptide] + "\t1"
+			result.append(s)
+			print s
 	
 	localResult = localFDR(novelChrPepHash)
 	arr = re.split(re.compile(";"),localResult)
@@ -236,8 +240,13 @@ def main():
 		ele = a.split("\t")
 		ks = info[ele[0]]
 		for k in ks:
-			print k + "\t"+chrPepHash[ele[0]] + "\t0"
+			s = k + "\t"+chrPepHash[ele[0]] + "\t0"
+			result.append(s)
+			print s
 	
+	with open(options.outfile,'w') as fout:
+		for r in result:
+			fout.write(r+'\n')
 	## end
 
 
