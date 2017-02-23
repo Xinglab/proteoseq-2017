@@ -192,7 +192,7 @@ def rev_complement(seq):
 	return rev_comp_seq
 
 def read_genome_dict(file_dir, indexdir):
-	print '## building genome index using samtools'
+	warnings.warn('## building genome index using samtools')
 	os.system('cat ' + file_dir + '/*.fa > ' + indexdir + '/GENOME.fa')
 	os.system('samtools faidx ' + indexdir + '/GENOME.fa')
 	indexdict = {}
