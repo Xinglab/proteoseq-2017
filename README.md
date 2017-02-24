@@ -3,7 +3,7 @@ RNA-seq and proteomics integrated pipeline for identification of peptide evidenc
 <br />
 contact: ybwang@hust.edu.cn<br />
 Please leave message to me via email or report here https://github.com/Xinglab/proteoseq/issues if any questions <br />
-update: 2017-02-21
+update: 2017-02-23
 
 ## Requirements:
     1. python 2.7.x or above, samtools
@@ -40,7 +40,10 @@ update: 2017-02-21
 
     # or submit the job using qsub
     qsub -cwd -V -N PTP -l h_data=30G,h_rt=3:00:00 -M eplau -m bea ./example_submit.sh
-		
+
+## Update (2017-02-23):
+    1. output the result to file
+    2. modify the output on console
 
 
 
