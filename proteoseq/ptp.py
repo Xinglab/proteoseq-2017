@@ -150,7 +150,9 @@ def databaseSearch(rawdir, database):
 		warnings.warn("\t# raw file:\t%s" % i)
 		inf = RAWDIR + '/' + i
 		outf = COMETOUTDIR + '/' + re.sub(re.compile("\..*$"),"",i)
-		cmd = "WINEDEBUG=fixme-all,err-all " + WINE +" "+ COMETEXE +" -P"+ COMETPAR+" -D"+database+" -N"+outf+" "+inf
+		cmd = COMETEXE.replace('win64','linux') +" -P"+ COMETPAR+" -D"+database+" -N"+outf+" "+inf
+		if re.search(r'raw$',i,re.I):
+			cmd = "WINEDEBUG=fixme-all,err-all " + WINE +" "+ COMETEXE +" -P"+ COMETPAR+" -D"+database+" -N"+outf+" "+inf
 		warnings.warn("\t"+cmd)
 		p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 		for line in p.stdout.readlines():
