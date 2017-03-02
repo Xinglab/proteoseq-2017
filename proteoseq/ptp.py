@@ -193,7 +193,6 @@ def percolator(cometdir):
 
 def postPercolatorFilter(fastaname,percolatorfile,exonfille,sjfile, outfile, threadNum=1):
 	tmpdir = OUTDIR+'/tmp'
-	scriptname = 'percolator_test2parellel.py' if exonfille != 'None' else 'percolator_directoutput.py'
 	#os.system(BINDIR+'/cruxpep_percolator_test2parellel.py -p %s -c %s -e %s -j %s -t %s -n %d -d %s' % (fastaname,percolatorfile,exonfille,sjfile,tmpdir,threadNum,BEDTOOLDIR))
 	if exonfille != 'None':
 		os.system('python ' + BINDIR+'/percolator_triesearch_exon.py  -p %s -c %s -e %s -j %s -t %s -b %s -o %s' % (fastaname, percolatorfile, exonfille, sjfile, tmpdir, BEDTOOLDIR, outfile))
