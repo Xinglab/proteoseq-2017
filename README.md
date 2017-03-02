@@ -41,7 +41,7 @@ update: 2017-03-02
     # or submit the job using qsub
     qsub -cwd -V -N PTP -l h_data=30G,h_rt=3:00:00 -M eplau -m bea ./example_submit.sh
 
-## Update (2017-02-23):
+## Update (2017-03-02):
     1. modify 'percolator_test2parellel.py' to 'percolator_triesearch.py' to speed up the re-mapping step
     1. output the result to file
     2. modify the output on console
