@@ -152,7 +152,8 @@ def main():
 			junc = '_'.join(arr[0:3]+arr[4:5])
 			if junc not in junctionHash:
 				sys.exit("[ERROR]:\t junction '%s' not exists in junction files\n" % options.sjfile)
-			if junctionHash[junc] == 0:
+			if junctionHash[junc] == '0':
+				#print '--',junc,junctionHash[junc]
 				novelChrPepHash[peptide] = chrPepHash[peptide]
 
 	warnings.warn("# Num of pep from novel junction:\t %s" % len(novelChrPepHash))
@@ -189,13 +190,13 @@ def main():
 def localFDR(chrPepHash,FDR=0.05):
 	''' do local FDR filter'''
 	if len(chrPepHash) == 0: return ''
-	uniq = sorted(list(set(chrPepHash.values)))
+	uniq = sorted(list(set(chrPepHash.values())))
 	warnings.warn("# Before FDR %f filter:\t%d" %(FDR,len(chrPepHash)))
 	result,n = '',0
 	for s in uniq:
 		sums,content,num,total = 0,'',0,len(chrPepHash.keys())
 		for l in chrPepHash.keys():
-			pep = chrPepHash[l]
+			pep = float(chrPepHash[l])
 			if pep <= s:
 				sums += pep
 				num += 1
