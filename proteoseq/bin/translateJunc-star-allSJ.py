@@ -71,6 +71,7 @@ def main():
 				chr_juncs = [junc[1:]]
 				last_chr = chr
 		warnings.warn("# stop and 5 aa less pep:\t"+str(np))
+	os.system('rm ' + options.genomeindexdir + '/GENOME.fa')
 
 def trim_prot(prot_seq, trim_RK = True):
 	#print "protein len:\t", prot_seq,"\t",len(prot_seq),"\t",
