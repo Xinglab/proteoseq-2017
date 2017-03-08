@@ -167,7 +167,7 @@ def main():
 		for k in ks:
 			s = k +"\t" + chrPepHash[peptide] + "\t1"
 			result.append(s)
-	
+
 	localResult = localFDR(novelChrPepHash)
 	arr = re.split(re.compile(";"),localResult)
 	for a in arr:
@@ -190,7 +190,8 @@ def main():
 def localFDR(chrPepHash,FDR=0.05):
 	''' do local FDR filter'''
 	if len(chrPepHash) == 0: return ''
-	uniq = sorted(list(set(chrPepHash.values())))
+	pepvalues = [float(x) for x in chrPepHash.values()]
+	uniq = sorted(list(set(pepvalues)))
 	warnings.warn("# Before FDR %f filter:\t%d" %(FDR,len(chrPepHash)))
 	result,n = '',0
 	for s in uniq:
@@ -227,6 +228,9 @@ def search(pephash, seqs, exonloc, exonPosHash, firstAA):
                         for i in ids:
 				index = seqs[i].upper().find(pep.upper())
 				start,end = index, len(pep) + index - 1
+				if i not in exonloc:
+					warnings.warn('[ERROR]: \'' + i + '\' \'' +aa +'\' not in exonloc. [Check the exon file input]')
+					continue
 				k = ';'.join(exonloc[i].keys())
 				tag = 'N'
 				for k2 in exonloc[i].keys():
