@@ -95,17 +95,18 @@ def main():
 			fout.write(r+'\n')
 
 	## end
-def localFDR(chrPepHash,FDR=0.05):
+def localFDR(chrPepHash,FDR=0.01):
 	if len(chrPepHash) == 0: return ''
-	uniq = sorted(list(set(chrPepHash.values())))
+	pepvalues = [float(x) for x in chrPepHash.values()]
+	uniq = sorted(list(set(pepvalues)))
 	warnings.warn("# Before FDR %f filter:\t%d" %(FDR,len(chrPepHash)))
 	result,n = '',0
 	for s in uniq:
 		sums,content,num,total = 0.0,'',0,len(chrPepHash.keys())
-		for l in chrPepHash.keys():
-			pep = chrPepHash[l]
+		for l in chrPepHash:
+			pep = float(chrPepHash[l])
 			if pep <= s:
-				sums += float(pep)
+				sums += pep
 				num += 1
 				content += str(l)+"\t"+str(pep)+";"
 		fdr = sums / num
