@@ -144,7 +144,7 @@ def databaseSearch(rawdir, database):
 	mylogger = logging.getLogger("comet")
 
 	allfiles = os.listdir(RAWDIR)
-	rawfiles = [x for x in allfiles if re.search('\.raw|\.mzXML|\.mzML',x) is not None]
+	rawfiles = [x for x in allfiles if re.search('\.raw|\.mzXML|\.mzML|\.mzML\.gz|\.mzXML\.gz',x,re.I) is not None]
 	if not os.path.exists(COMETOUTDIR): os.makedirs(COMETOUTDIR)
 	for i in rawfiles[0:]:
 		warnings.warn("\t# raw file:\t%s" % i)
@@ -153,11 +153,18 @@ def databaseSearch(rawdir, database):
 		cmd = COMETEXE.replace('win64','linux') +" -P"+ COMETPAR+" -D"+database+" -N"+outf+" "+inf
 		if re.search(r'raw$',i,re.I):
 			cmd = "WINEDEBUG=fixme-all,err-all " + WINE +" "+ COMETEXE +" -P"+ COMETPAR+" -D"+database+" -N"+outf+" "+inf
+		if re.search(r'.gz',i):
+			tmpdir = OUTDIR + '/tmp'
+			if not os.path.exists(tmpdir): os.makedirs(tmpdir)
+			inf_no_gz = tmpdir+'/'+re.sub(r'\.gz$','',i)
+			os.system('gunzip -c ' + inf + ' > ' + inf_no_gz)
+			cmd = COMETEXE.replace('win64','linux') +" -P"+ COMETPAR+" -D"+database+" -N"+outf+" "+inf_no_gz
 		warnings.warn("\t"+cmd)
 		p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 		for line in p.stdout.readlines():
 			mylogger.info(line.rstrip())
 		retval = p.wait()
+	if os.path.exists(OUTDIR + '/tmp'): os.system('rm -r' + OUTDIR + '/tmp')
 	return os.path.basename(COMETOUTDIR)
 
 def percolatorCrux(cometdir):
