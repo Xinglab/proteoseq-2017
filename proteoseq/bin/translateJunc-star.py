@@ -70,7 +70,7 @@ def main():
 						out.write(id_line + '_startTrim:'+str(left_trim)+'_ORF:' + str(j) + '\n' + tr_prot_seq + '\n')
 				chr_juncs = [junc[1:]]
 				last_chr = chr
-		warnings.warn("# stop and 5 aa less pep:\t"+str(np))
+		warnings.warn("# --stop and 5 aa less pep:\t"+str(np))
 	os.system('rm ' + options.genomeindexdir + '/GENOME.fa')
 
 def trim_prot(prot_seq, trim_RK = True):
@@ -193,7 +193,7 @@ def rev_complement(seq):
 	return rev_comp_seq
 
 def read_genome_dict(file_dir, indexdir):
-	warnings.warn('## building genome index using samtools')
+	warnings.warn('# building genome index using samtools')
 	os.system('cat ' + file_dir + '/*.fa > ' + indexdir + '/GENOME.fa')
 	os.system('samtools faidx ' + indexdir + '/GENOME.fa')
 	indexdict = {}
