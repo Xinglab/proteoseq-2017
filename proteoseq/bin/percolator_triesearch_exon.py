@@ -267,8 +267,8 @@ def search(pephash, seqs, exonloc, exonPosHash, firstAA):
 						dis = abs(maxRight-minLeft)+1+abs(endPos-startPos)+1
 						overlapStatus = 1 if abs(p[3]-p[0]) + 1 < dis else 0
 						if maxRight >= startPos and maxRight >= endPos and overlapStatus == 1: exons = a + ';' + exons
-				if jl in exonPosHash[chrom+"_"+strand+"exonLeft"]:
-					arr = exonPosHash[chrom+"_"+strand+"exonLeft"][jl]
+				if jl in exonPosHash[chrom+"_"+strand+"exonRight"]:
+					arr = exonPosHash[chrom+"_"+strand+"exonRight"][jl]
 					for a in arr:
 						minLeft,maxRight = a.split("_")[1:3]
 						minLeft = int(minLeft)+1
@@ -276,7 +276,7 @@ def search(pephash, seqs, exonloc, exonPosHash, firstAA):
 						p = sorted([maxRight, minLeft, startPos, endPos])
 						dis = abs(maxRight-minLeft)+1+abs(endPos-startPos)+1
 						overlapStatus = 1 if abs(p[3]-p[0]) + 1 < dis else 0
-						if minLeft <= startPos and maxLeft <= endPos and overlapStatus == 1: exons = a + ';' + exons
+						if minLeft <= startPos and minLeft <= endPos and overlapStatus == 1: exons = a + ';' + exons
 				chrPepHash[pep] = pephash[pep]
 				s = "\t".join([pep,str(start),str(end),str(k),tag,str(i),seqs[i],exons,str(startPos),str(endPos)])
 				info[pep][s] = ''
