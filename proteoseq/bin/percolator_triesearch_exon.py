@@ -245,7 +245,7 @@ def search(pephash, seqs, exonloc, exonPosHash, firstAA):
 				ORF = int(ORF.replace('ORF:',''))
 				startTrim = int(startTrim) + start
 				l = int(annol.split(',')[0])
-				r = int(annol.split(',')[2])
+				r = int(annor.split(',')[2])
 				startPos = l+startTrim*3+ORF if strand == '+' else r-startTrim*3-ORF
 				if strand == '+' and startPos > jl:
 					startPos = jr + startPos -jl - 1
@@ -267,8 +267,10 @@ def search(pephash, seqs, exonloc, exonPosHash, firstAA):
 						dis = abs(maxRight-minLeft)+1+abs(endPos-startPos)+1
 						overlapStatus = 1 if abs(p[3]-p[0]) + 1 < dis else 0
 						if maxRight >= startPos and maxRight >= endPos and overlapStatus == 1: exons = a + ';' + exons
-				if jl in exonPosHash[chrom+"_"+strand+"exonRight"]:
+				if jl in exonPosHash[chrom+"_"+strand+"exonRight"]:					
 					arr = exonPosHash[chrom+"_"+strand+"exonRight"][jl]
+					#if pep == 'RWSLAVSPRL':
+					#	print '***',arr,startPos,endPos,annol
 					for a in arr:
 						minLeft,maxRight = a.split("_")[1:3]
 						minLeft = int(minLeft)+1
