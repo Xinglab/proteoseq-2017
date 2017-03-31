@@ -269,8 +269,6 @@ def search(pephash, seqs, exonloc, exonPosHash, firstAA):
 						if maxRight >= startPos and maxRight >= endPos and overlapStatus == 1: exons = a + ';' + exons
 				if jl in exonPosHash[chrom+"_"+strand+"exonRight"]:					
 					arr = exonPosHash[chrom+"_"+strand+"exonRight"][jl]
-					#if pep == 'RWSLAVSPRL':
-					#	print '***',arr,startPos,endPos,annol
 					for a in arr:
 						minLeft,maxRight = a.split("_")[1:3]
 						minLeft = int(minLeft)+1
