@@ -1,9 +1,9 @@
-##Proteotranscriptome pipeline
+## Proteotranscriptome pipeline
 RNA-seq and proteomics integrated pipeline for identification of peptide evidence of Alu exon or Human specific exons
 <br />
 contact: ybwang@hust.edu.cn<br />
 Please leave message to me via email or report here https://github.com/Xinglab/proteoseq/issues if any questions <br />
-update: 2017-03-30
+update: 2017-03-31
 
 ## Requirements:
     1. python 2.7.x or above, samtools
@@ -41,12 +41,13 @@ update: 2017-03-30
     # or submit the job using qsub
     qsub -cwd -V -N PTP -l h_data=30G,h_rt=3:00:00 -M eplau -m bea ./example_submit.sh
 
-## Update (2017-03-30):
-    1. modify important error in bin/percolator_triesearch_exon.py in 'def search()'
-    1. update ptp.py to support mzXML.gz, mzML.gz file input
-    1. modify 'percolator_test2parellel.py' to 'percolator_triesearch.py' to speed up the re-mapping step
-    1. output the result to file
-    2. modify the output on console
+## Update (2017-03-31):
+    2017-03-31: update 'ptp.py' to support certain step start in pipeline
+    2017-03-30: modify important error in bin/percolator_triesearch_exon.py in 'def search()'
+    *. update ptp.py to support mzXML.gz, mzML.gz file input
+    *. modify 'percolator_test2parellel.py' to 'percolator_triesearch.py' to speed up the re-mapping step
+    *. output the result to file
+    *. modify the output on console
 
 
 
