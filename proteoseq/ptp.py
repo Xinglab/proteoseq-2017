@@ -35,6 +35,8 @@ def main(options):
 	sjfilename = parseSJ(options.sjfile) if options.step == 1  else outfilename + '.SJ'
 	# 2. translate junctions to peptide
 	fastaname = translate(options.bamfile, OUTDIR+"/"+sjfilename, options.exonfile, options.flank, options.genome_file, options.min_junc_reads, OUTDIR+"/"+sjfilename.replace('SJ','fa'), OUTDIR) if options.step <= 2 else outfilename + '.fa'
+	if not os.path.exists(OUTDIR + '/' + fastaname):
+		sys.exit('[ERROR]:\tTranslation failed, please alloc more memory')
 	# 3. merge peptides to uniprot database
 	customdb = mergePeps2Database(fastaname,options.database) if options.step <= 3 else 'merge_' + outfilename + '.fa'
 	# 4. database search using comet
@@ -62,7 +64,7 @@ def printParameters(options, outdir):
 	warnings.warn('# ##########\n')
 	
 def parseSJ(SJfile, outfilename = ''):
-	warnings.warn('## Step1:\tparse junction file start')
+	warnings.warn('## Step 1:\tparse junction file start')
 	if os.path.exists(SJfile) == False:
 		sys.exit("[ERROR]: Junction file not exists!\n")
 	outfile = datetime.datetime.now().strftime('%Y%m%d%H%M%S') + "-" + str(random.randint(1000,9999)) + ".SJ"
@@ -76,6 +78,7 @@ def translate(bamfile,sjfile,exonfiles,flank,genome_file,min_junc_reads,outfile,
 		sys.exit("[ERROR]: Bam file not exists!\n")
 	scriptname = 'translateJunc-star.py' if exonfiles != 'None' else 'translateJunc-star-allSJ.py'
 	cmd = "python "+BINDIR + "/" + scriptname + " -o " + outfile + " -l " + str(flank) + " --min-junc-reads=" + str(min_junc_reads) + " -g " + genome_file + " -G " + outdir + " " + bamfile + " " + sjfile + " " + exonfiles
+	print cmd
 	os.system(cmd)
 	return os.path.basename(outfile)
 
