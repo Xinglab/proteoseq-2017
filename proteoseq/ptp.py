@@ -78,7 +78,6 @@ def translate(bamfile,sjfile,exonfiles,flank,genome_file,min_junc_reads,outfile,
 		sys.exit("[ERROR]: Bam file not exists!\n")
 	scriptname = 'translateJunc-star.py' if exonfiles != 'None' else 'translateJunc-star-allSJ.py'
 	cmd = "python "+BINDIR + "/" + scriptname + " -o " + outfile + " -l " + str(flank) + " --min-junc-reads=" + str(min_junc_reads) + " -g " + genome_file + " -G " + outdir + " " + bamfile + " " + sjfile + " " + exonfiles
-	print cmd
 	os.system(cmd)
 	return os.path.basename(outfile)
 
